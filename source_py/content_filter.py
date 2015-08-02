@@ -29,7 +29,7 @@ class ItemProfile(object):
         self.train = pd.DataFrame.copy(coupons_train[self.fields], deep=True)
         self.test = pd.DataFrame.copy(coupons_test[self.fields], deep=True)
 
-    def scale(self, alpha=2.0):
+    def scale(self, alpha=1.0):
         """
         Normalizes numerical variables in the training and test sets.
         :param alpha : scaling factor
@@ -63,3 +63,26 @@ class ItemProfile(object):
 if __name__ == '__main__':
 
     print "hello"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
