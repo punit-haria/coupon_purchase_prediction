@@ -147,6 +147,7 @@ class User(object):
         # item profile object
         self.item_profile = item_profile
 
+
     def get_id(self):
         """
         :return: ID of this user
@@ -167,7 +168,10 @@ class User(object):
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
-        top_indices = scores.head(n=User.num_coupons()).index
+        numcoups = User.num_coupons()
+        if numcoups < 1: 
+            return ""
+        top_indices = scores.head(n=numcoups).index
         # get top coupon IDs
         coups = self.data.coupons_test.ix[top_indices].COUPON_ID_hash.tolist()
         # return as space-delimited string
@@ -182,7 +186,7 @@ class User(object):
         """
         :return: the number of coupons to recommend for this user
         """
-        return 5
+        return 10
 
 
 def run(output_filename):
