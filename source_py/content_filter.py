@@ -1,5 +1,8 @@
+import os.path
+import numpy as np
 import pandas as pd
-from scipy.spatial.distance import cosine
+from numpy.linalg import norm
+
 
 class DataLoader(object):
 
@@ -71,75 +74,144 @@ class DataLoader(object):
 
 
 
-class Coupons(object):
+class ItemProfile(object):
 
-    def __init__(self, coupons):
+    def __init__(self, loader, simfn="cosine"):
         """
-        :param coupons : pandas.DataFrame of coupons
+        :param loader: DataLoader
+        :param simfn : similarity function
         """
-        self.coupons = coupons
+        self.data = loader
+        self.path = "data/item_similarities.csv"
+        self.matrix = None
+        if simfn == "cosine":
+            self.simfn = self._generate_cosine
+        else:
+            raise NotImplementedError
 
 
-    def similarity(self, input_coupons):
+    def similarity(self, train_range, test_range):
         """
-        :param input_coupons : pandas.DataFrame of new coupons
-        :return computes the cosine similarities of these coupons with the input coupons
+        :param train_range, test_range : lists of indices into training and test coupon DataFrames
+        :return the cosine similarities of these coupons with the input coupons
         """
-        test_coups = Coupons(input_coupons)
+        simil_matrix = self.generate()
+        return simil_matrix.ix[train_range][test_range]
 
-        test_df = test_coups.coupons.drop("COUPON_ID_hash", 1)
-        df = self.coupons.drop("COUPON_ID_hash", 1)
 
-        # get columns names
-        cols = ["id"]
-        for j, row in df.iterrows():
-            cols.append(self.coupons.ix[j]["COUPON_ID_hash"])
+    def generate(self):
+        """
+        Returns the Item-Item similarity matrix between training and test coupons.
+        """
+        if self.matrix is not None:
+            return self.matrix
+        elif os.path.isfile(self.path):
+            self.matrix = pd.read_csv(self.path)
+        else:
+            self.matrix = self.simfn()
 
-        # get similarity scores
-        results = []
-        for i, test_row in test_df.iterrows():
-            vals = [test_coups.coupons.ix[i]["COUPON_ID_hash"]]
-            for j, row in df.iterrows():
-                vals.append(1 - cosine(test_row, row))
-            results.append(vals)
+        return self.matrix
 
-        return pd.DataFrame(results, columns=cols)
 
+    def _generate_cosine(self):
+        """
+        Generates an Item-Item cosine similarity matrix between the training and test coupons.
+        """
+        train = self.data.coupons_train.drop("COUPON_ID_hash", 1)
+        test = self.data.coupons_test.drop("COUPON_ID_hash", 1)
+
+        # normalize data
+        train = train.div(train.apply(norm, axis=1), axis='index')
+        test = test.div(test.apply(norm, axis=1), axis='index')
+
+        # compute cosine similarities
+        return train.dot(test.transpose())
 
 
 class User(object):
 
-    def __init__(self, loader, index):
+    def __init__(self, loader, index, item_profile):
         """
         :param loader: DataLoader object with access to all data
         :param index: row index into user_list DataFrame for this user
+        :param item_profile : ItemProfile object
         """
         self.data = loader
-        self.users = self.data.user_list
         # this user
-        self.user = self.users.ix[index]
+        self.user = self.data.user_list.ix[index]
         self.index = index
         # transactions
         self.purchases = self.data.details_train[self.data.details_train.USER_ID_hash == self.user.USER_ID_hash]
         # purchased coupons
-        coupons_df = self.data.coupons_train[self.data.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]
-        self.coupons = Coupons(coupons_df)
+        self.coupons = self.data.coupons_train[self.data.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]
+        # item profile object
+        self.item_profile = item_profile
+
+    def get_id(self):
+        """
+        :return: ID of this user
+        """
+        return self.user.USER_ID_hash
 
 
     def recommend(self):
+        """
+        :return: gets the recommended coupons from the test set for this user
+        """
         # get similarity scores for each test coupon
-        scores = self.coupons.similarity(self.data.coupons_test)
+        scores = self.item_profile.similarity(self.coupons.index, self.data.coupons_test.index)
+        # x-axis: test coupons, y-axis: user coupons
+        scores = scores.transpose()
         # compute mean similarity score for each test coupon
-        scores["mean"] = scores.drop("id", axis=1).mean(axis=1)
-        # 
-        return scores
+        scores["mean"] = scores.mean(axis=1)
+        # sort by descending order of mean score
+        scores.sort(columns="mean", ascending=False, inplace=True)
+        # get top test coupon indices
+        top_indices = scores.head(n=User.num_coupons()).index
+        # get top coupon IDs
+        coups = self.data.coupons_test.ix[top_indices].COUPON_ID_hash.tolist()
+        # return as space-delimited string
+        ids = ""
+        for value in coups:
+            ids += value + " "
+        return ids
+
+
+    @staticmethod
+    def num_coupons():
+        """
+        :return: the number of coupons to recommend for this user
+        """
+        return 5
+
+
+def run(output_filename):
+    submission = []
+
+    load = DataLoader()
+    item_profile = ItemProfile(load)
+
+    print "Userlist size: ", load.user_list.shape
+
+    e = 0
+    for index in load.user_list.index:
+        user = User(load, index, item_profile)
+        coupons = user.recommend()
+        submission.append([user.get_id(), coupons])
+        e += 1
+        if e % 1000 == 0:
+            print "At User: ", e
+    final_df = pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
+
+    final_df.to_csv(output_filename, sep=",", index=False, header=True)
+
 
 
 if __name__ == '__main__':
 
-    load = DataLoader()
-    user = User(load, 234)
-    df = user.recommend()
+    run("optimized_output.csv")
+
+
 
 
 
