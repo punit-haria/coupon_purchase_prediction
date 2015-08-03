@@ -1,0 +1,12 @@
+1. optimize out the User class
+2. plot histogram of user purchases over time
+3. implement architecture for cross validation (including MAP function)
+4. create better model for User.num_coupons() (markov process?)
+5. optimize hyperparameters: 
+	User.num_coupons(), 
+	numerical variable weights, 
+	weights for user coupon purchases by time, 
+	different similarity functions,
+	etc
+6. start thinking about collaborative filtering
+	
