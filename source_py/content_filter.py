@@ -1,5 +1,4 @@
 import os.path
-import numpy as np
 import pandas as pd
 from numpy.linalg import norm
 
@@ -168,10 +167,10 @@ class User(object):
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
-        numcoups = User.num_coupons()
-        if numcoups < 1: 
+        top = User.num_coupons()
+        if top < 1:
             return ""
-        top_indices = scores.head(n=numcoups).index
+        top_indices = scores.head(n=top).index
         # get top coupon IDs
         coups = self.data.coupons_test.ix[top_indices].COUPON_ID_hash.tolist()
         # return as space-delimited string
@@ -213,7 +212,7 @@ def run(output_filename):
 
 if __name__ == '__main__':
 
-    run("optimized_output.csv")
+    run('optimized_output.csv')
 
 
 
