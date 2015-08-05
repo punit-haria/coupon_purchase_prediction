@@ -81,7 +81,6 @@ class ItemProfile(object):
         :param simfn : similarity function
         """
         self.data = loader
-        self.path = "data/item_similarities.csv"
         self.matrix = None
         if simfn == "cosine":
             self.simfn = self._generate_cosine
@@ -102,11 +101,7 @@ class ItemProfile(object):
         """
         Returns the Item-Item similarity matrix between training and test coupons.
         """
-        if self.matrix is not None:
-            return self.matrix
-        elif os.path.isfile(self.path):
-            self.matrix = pd.read_csv(self.path)
-        else:
+        if self.matrix is None:
             self.matrix = self.simfn()
 
         return self.matrix
@@ -185,7 +180,7 @@ class User(object):
         """
         :return: the number of coupons to recommend for this user
         """
-        return 10
+        return 5
 
 
 def run(output_filename):
@@ -212,7 +207,7 @@ def run(output_filename):
 
 if __name__ == '__main__':
 
-    run('optimized_output.csv')
+    run('submissions/testing.csv')
 
 
 
