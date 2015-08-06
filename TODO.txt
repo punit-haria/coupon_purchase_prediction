@@ -1,4 +1,4 @@
-2. plot histogram of user purchases over time
+
 3. implement architecture for cross validation (including MAP function)
 4. create better model for User.num_coupons() (markov process?)
 5. optimize hyperparameters: 
