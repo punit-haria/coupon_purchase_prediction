@@ -1,16 +1,19 @@
 from numpy.linalg import norm
+import pandas as pd
 
 
 class ItemProfile(object):
 
-    def __init__(self, loader, simfn="cosine", train_only=False):
+    def __init__(self, train, test, simfn="cosine"):
         """
-        :param loader: DataLoader
+        :param train/test : pandas.DataFrame for training and test coupon data
         :param simfn : similarity function
         """
-        self.data = loader
+        assert isinstance(train, pd.DataFrame)
+        assert isinstance(test, pd.DataFrame)
+        self.train = train
+        self.test = test
         self.matrix = None
-        self.train = train_only
         if simfn == "cosine":
             self.simfn = self._generate_cosine
         else:
@@ -40,11 +43,8 @@ class ItemProfile(object):
         """
         Generates an Item-Item cosine similarity matrix between the training and test coupons.
         """
-        left = self.data.coupons_train.drop("COUPON_ID_hash", 1)
-        if self.train:
-            right = self.data.coupons_train.drop("COUPON_ID_hash", 1)
-        else:
-            right = self.data.coupons_test.drop("COUPON_ID_hash", 1)
+        left = self.train.drop("COUPON_ID_hash", 1)
+        right = self.test.drop("COUPON_ID_hash", 1)
 
         # normalize data
         left = left.div(left.apply(norm, axis=1), axis='index')

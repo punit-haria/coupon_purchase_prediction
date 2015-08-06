@@ -8,10 +8,28 @@ class DataLoader(object):
     numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE"]
     categorical = ["CAPSULE_TEXT", "GENRE_NAME"]
 
+
     def __init__(self, alpha=1.0):
         """
         :param alpha: scaling factor for numerical variables
         """
+        self.alpha = alpha
+
+        # read raw data
+        self.__read_raw_data()
+
+        # keep relevant coupon fields only
+        self.coupons_train = self.coupons_train[DataLoader.fields]
+        self.coupons_test = self.coupons_test[DataLoader.fields]
+
+        # scale numerical variables
+        self._scale()
+
+        # expand categorical variables
+        self._expand_data()
+
+
+    def __read_raw_data(self):
         self.user_list = pd.read_csv("raw_data/user_list.csv")
         self.coupons_train = pd.read_csv("raw_data/coupon_list_train.csv")
         self.coupons_test = pd.read_csv("raw_data/coupon_list_test.csv")
@@ -23,13 +41,13 @@ class DataLoader(object):
         assert self.coupons_test.shape == (310,24)
         assert self.details_train.shape == (168996,6)
 
-        # keep relevant coupon fields only
-        self.coupons_train = self.coupons_train[DataLoader.fields]
-        self.coupons_test = self.coupons_test[DataLoader.fields]
 
-        # scale coupons
-        self.alpha = alpha
-        self.scale()
+    def _expand_data(self):
+        def expand(df):
+            """
+            Expands the categorical variables of input DataFrame into dummy variables.
+            """
+            return pd.get_dummies(df, columns=DataLoader.categorical)
 
         # need to concatenate to maintain column consistency when expanding
         self.coupons_train["type"] = "train"
@@ -37,7 +55,7 @@ class DataLoader(object):
         merged = self.coupons_train.append(self.coupons_test)
 
         # expand coupons
-        merged = self.expand(merged)
+        merged = expand(merged)
         self.coupons_train = pd.DataFrame.copy(merged[merged.type == "train"], deep=True)
         self.coupons_train.reset_index(inplace=True)
         self.coupons_train.drop(["index","type"], axis=1, inplace=True)
@@ -51,7 +69,7 @@ class DataLoader(object):
             assert left == right
 
 
-    def scale(self):
+    def _scale(self):
         """
         Normalizes numerical variables in the training and test sets.
         """
@@ -62,10 +80,5 @@ class DataLoader(object):
         self.coupons_test[DataLoader.numerical] = normalize(self.coupons_test[DataLoader.numerical], self.alpha)
 
 
-    @staticmethod
-    def expand(df):
-        """
-        Expands the categorical variables of input DataFrame into dummy variables.
-        """
-        return pd.get_dummies(df, columns=DataLoader.categorical)
+
 

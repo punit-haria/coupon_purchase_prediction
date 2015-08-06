@@ -7,27 +7,18 @@ import pandas as pd
 
 class Model(object):
 
-    def __init__(self, loader):
-        """
-        :param loader: DataLoader
-        """
-        assert isinstance(loader, DataLoader)
-        self.data = loader
+    def __init__(self):
+        pass
 
-    def run(self, start, end):
+    def run(self):
         """
-        :param start: start index in training set
-        :param end: end index in training set
-        The entire model training process is done using this subset of the training data.
+        Run model training process.
         """
         raise NotImplementedError
 
-    def predict(self, start, end, train=True):
+    def predict(self):
         """
-        :param start: start index in DataFrame
-        :param end: end index in DataFrame
-        Predictions are made for rows in [start:end). If train is True, then the training
-        coupon dataset is used. Otherwise, the test coupon dataset is used.
+        Predictions are made for test set.
         """
         raise NotImplementedError
 
@@ -35,25 +26,46 @@ class Model(object):
 
 class ContentFilter(Model):
 
-    def __init__(self, loader):
+    def __init__(self, users, train, test, purchases):
         """
-        :param loader: DataLoader
+        :param users: pandas.DataFrame of user data
+        :param train: pandas.DataFrame of training coupon data
+        :param test: pandas.DataFrame of test coupon data
+        :param purchases: pandas.DataFrame of All user purchases
         """
-        super(ContentFilter, self).__init__(loader)
+        super(ContentFilter, self).__init__()
+        assert isinstance(users, pd.DataFrame)
+        assert isinstance(train, pd.DataFrame)
+        assert isinstance(test, pd.DataFrame)
+        assert isinstance(purchases, pd.DataFrame)
+
+        self.train = train
+        self.test = test
+        self.users = users
+        self.purchases = purchases
+
+        self.item_profile = ItemProfile(train, test)
 
 
-    def run(self, start, end):
+    def run(self):
+        """
+        Run model training process.
+        """
+        print "No training required..."
+
+
+    def predict(self):
+        """
+        Predictions are made on the test set; returns DataFrame in Kaggle submission format.
+        """
         submission = []
 
-        load = DataLoader()
-        item_profile = ItemProfile(load)
-
-        print "Userlist size: ", load.user_list.shape
+        print "Userlist size: ", self.users.shape
 
         e = 0
-        for index in load.user_list.index:
-            user = User(load, index, item_profile)
-            coupons = user.recommend()
+        for index in self.users.index:
+            user = User(self.users, index, self.purchases, self.train)
+            coupons = self._recommend(user, self.test)
             submission.append([user.get_id(), coupons])
             e += 1
             if e % 1000 == 0:
@@ -62,8 +74,32 @@ class ContentFilter(Model):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def predict(self, start, end, train=True):
-        super(ContentFilter, self).predict(start, end, train)
+    def _recommend(self, user, test_coupons):
+        """
+        Recommends a ranked sequence of Coupons for a provided User.
+        :param user: User
+        :param test_coupons: pandas.DataFrame of test coupon data
+        """
+        # get similarity scores for each test coupon
+        scores = self.item_profile.similarity(user.coupons.index, test_coupons.index)
+        # x-axis: test coupons, y-axis: user coupons
+        scores = scores.transpose()
+        # compute mean similarity score for each test coupon
+        scores["mean"] = scores.mean(axis=1)
+        # sort by descending order of mean score
+        scores.sort(columns="mean", ascending=False, inplace=True)
+        # get top test coupon indices
+        top = User.num_coupons()
+        if top < 1:
+            return ""
+        top_indices = scores.head(n=top).index
+        # get top coupon IDs
+        coups = test_coupons.ix[top_indices].COUPON_ID_hash.tolist()
+        # return as space-delimited string
+        ids = ""
+        for value in coups:
+            ids += value + " "
+        return ids
 
 
 
