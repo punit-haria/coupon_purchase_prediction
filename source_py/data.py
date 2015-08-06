@@ -10,7 +10,7 @@ class DataLoader(object):
 
     def __init__(self, alpha=1.0):
         """
-        :param alpha: scaling factor for numerical variables in Item Profile
+        :param alpha: scaling factor for numerical variables
         """
         self.user_list = pd.read_csv("raw_data/user_list.csv")
         self.coupons_train = pd.read_csv("raw_data/coupon_list_train.csv")

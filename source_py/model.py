@@ -32,6 +32,7 @@ class Model(object):
         raise NotImplementedError
 
 
+
 class ContentFilter(Model):
 
     def __init__(self, loader):
@@ -66,15 +67,6 @@ class ContentFilter(Model):
 
 
 
-def run(output_filename):
-    load = DataLoader()
-    model = ContentFilter(load)
-    final_df = model.run(0,100)
-    final_df.to_csv(output_filename, sep=",", index=False, header=True)
-
-
-if __name__ == '__main__':
-    run('submissions/testing.csv')
 
 
 
