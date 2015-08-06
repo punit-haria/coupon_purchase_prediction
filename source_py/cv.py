@@ -2,7 +2,7 @@ from source_py.data import DataLoader
 
 import numpy as np
 
-class CrossValidator(object):
+class Validator(object):
 
     def __init__(self, start_date, training_period, validation_period, loader):
         """
@@ -18,5 +18,11 @@ class CrossValidator(object):
         assert isinstance(loader, DataLoader)
         self.data = loader
 
-
-    
+        #TODO (See below)
+        '''
+        Cross validate by taking all coupons with a DISPFROM value on or before
+        the end training date and put them in the training set. Coupons with a DISPFROM
+        value between the training end date and the end of the validation period go
+        in the validation set. Similarly, split the purchases DataFrame by joining on
+        these newly created coupon training and validation sets.
+        '''

@@ -6,14 +6,37 @@ import pandas as pd
 
 class Model(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, train, test, users, purchases, alpha=0.1):
+        """
+        :param train: pandas.DataFrame of training coupon data
+        :param test: pandas.DataFrame of test coupon data
+        :param users: pandas.DataFrame of user data
+        :param purchases: pandas.DataFrame of All user purchases
+        :param alpha: scaling factor for numerical variables
+        """
+        self.fields = None
+        self.numerical = None
+        self.categorical = None
+
+        assert isinstance(train, pd.DataFrame)
+        assert isinstance(test, pd.DataFrame)
+        assert isinstance(users, pd.DataFrame)
+        assert isinstance(purchases, pd.DataFrame)
+
+        self.train = train
+        self.test = test
+        self.users = users
+        self.purchases = purchases
+
+        self.alpha = alpha
+
 
     def run(self):
         """
         Run model training process.
         """
         raise NotImplementedError
+
 
     def predict(self):
         """
@@ -22,28 +45,72 @@ class Model(object):
         raise NotImplementedError
 
 
+    def _expand(self):
+        """
+        Expands categorical variables in training and test sets into
+        0-1 dummy variables. Note: NO future information is introduced
+        from the test set.
+        """
+        # need to concatenate to maintain column consistency when expanding
+        self.train["type"] = "train"
+        self.test["type"] = "test"
+        merged = self.train.append(self.test)
+
+        # expand coupons
+        merged = pd.get_dummies(merged, columns=self.categorical)
+        self.train = pd.DataFrame.copy(merged[merged.type == "train"], deep=True)
+        self.train.reset_index(inplace=True)
+        self.train.drop(["index","type"], axis=1, inplace=True)
+        self.test = pd.DataFrame.copy(merged[merged.type == "test"], deep=True)
+        self.test.reset_index(inplace=True)
+        self.test.drop(["index","type"], axis=1, inplace=True)
+
+        # validate coupon expansion
+        assert len(self.train.columns) == len(self.test.columns)
+        for left, right in zip(self.train.columns, self.test.columns):
+            assert left == right
+
+
+    def _scale(self):
+        """
+        Normalizes numerical variables in the training and test sets.
+        Note: NO future information is introduced. Test set normalization
+        is done using training set min/max values.
+        """
+        df = self.train[self.numerical]
+        train_min = df.min()
+        train_max = df.max()
+        self.train[self.numerical] = self.alpha * (df - train_min) / (train_max - train_min)
+        df = self.test[self.numerical]
+        self.test[self.numerical] = self.alpha * (df - train_min) / (train_max - train_min)
+
+
 
 class ContentFilter(Model):
 
-    def __init__(self, users, train, test, purchases):
+    def __init__(self, train, test, users, purchases, alpha=0.1):
         """
-        :param users: pandas.DataFrame of user data
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
+        :param users: pandas.DataFrame of user data
         :param purchases: pandas.DataFrame of All user purchases
         """
-        super(ContentFilter, self).__init__()
-        assert isinstance(users, pd.DataFrame)
-        assert isinstance(train, pd.DataFrame)
-        assert isinstance(test, pd.DataFrame)
-        assert isinstance(purchases, pd.DataFrame)
+        super(ContentFilter, self).__init__(train, test, users, purchases, alpha)
 
-        self.train = train
-        self.test = test
-        self.users = users
-        self.purchases = purchases
+        self.fields = ["COUPON_ID_hash", "CAPSULE_TEXT", "GENRE_NAME", "PRICE_RATE",
+                       "CATALOG_PRICE", "DISCOUNT_PRICE"]
+        self.numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE"]
+        self.categorical = ["CAPSULE_TEXT", "GENRE_NAME"]
 
-        self.item_profile = ItemProfile(train, test)
+        # keep relevant coupon fields only
+        self.train = self.train[self.fields]
+        self.test = self.test[self.fields]
+
+        self._scale()
+        self._expand()
+
+        # construct ItemProfile using finalized training and test sets
+        self.item_profile = ItemProfile(self.train, self.test)
 
 
     def run(self):
