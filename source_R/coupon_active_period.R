@@ -34,6 +34,16 @@ coupons_test$VALIDFROM <- as.Date(coupons_test$VALIDFROM,
 coupons_test$VALIDEND <- as.Date(coupons_test$VALIDEND,
                                   format="%Y-%m-%d ")
 
+#-------------------------------------------------------
+
+# comparisons of Coupon Sales periods in training and test set
+
+coupons_train %>% select(DISPFROM, DISPEND, VALIDFROM, VALIDEND) %>% summary()
+coupons_test %>% select(DISPFROM, DISPEND, VALIDFROM, VALIDEND) %>% summary()
+summary(details_train$I_DATE)
+
+
+
 
 
 

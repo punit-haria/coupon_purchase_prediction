@@ -103,8 +103,8 @@ class ContentFilter(Model):
         self.categorical = ["CAPSULE_TEXT", "GENRE_NAME"]
 
         # keep relevant coupon fields only
-        self.train = self.train[self.fields]
-        self.test = self.test[self.fields]
+        self.train = self.train[self.fields].copy(deep=True)
+        self.test = self.test[self.fields].copy(deep=True)
 
         self._scale()
         self._expand()
@@ -131,7 +131,7 @@ class ContentFilter(Model):
         e = 0
         for index in self.users.index:
             user = User(self.users, index, self.purchases, self.train)
-            coupons = self._recommend(user, self.test)
+            coupons = self._recommend(user)
             submission.append([user.get_id(), coupons])
             e += 1
             if e % 1000 == 0:
@@ -140,14 +140,13 @@ class ContentFilter(Model):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _recommend(self, user, test_coupons):
+    def _recommend(self, user):
         """
         Recommends a ranked sequence of Coupons for a provided User.
         :param user: User
-        :param test_coupons: pandas.DataFrame of test coupon data
         """
         # get similarity scores for each test coupon
-        scores = self.item_profile.similarity(user.coupons.index, test_coupons.index)
+        scores = self.item_profile.similarity(user.coupons.index, self.test.index)
         # x-axis: test coupons, y-axis: user coupons
         scores = scores.transpose()
         # compute mean similarity score for each test coupon
@@ -160,7 +159,7 @@ class ContentFilter(Model):
             return ""
         top_indices = scores.head(n=top).index
         # get top coupon IDs
-        coups = test_coupons.ix[top_indices].COUPON_ID_hash.tolist()
+        coups = self.test.ix[top_indices].COUPON_ID_hash.tolist()
         # return as space-delimited string
         ids = ""
         for value in coups:
