@@ -1,4 +1,3 @@
-from source_py.data import DataLoader
 from source_py.item import ItemProfile
 from source_py.user import User
 
