@@ -30,6 +30,6 @@ class User(object):
         """
         :return: the number of coupons to recommend for this user
         """
-        return 5
+        return 10
 
 

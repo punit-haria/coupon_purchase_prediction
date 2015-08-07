@@ -11,9 +11,14 @@ def run(output_filename):
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
 if __name__ == '__main__':
+
     #run('submissions/testing.csv')
+
     load = DataLoader()
-    cv = Validator('2011-06-29', 200, 20, load)
+    cv = Validator('2011-06-29', 250, 20, load)
+    predictions = cv.run()
+    score = cv.mapk(10, cv.actual, predictions)
+
 
 
 

@@ -164,7 +164,7 @@ class ContentFilter(Model):
         ids = ""
         for value in coups:
             ids += value + " "
-        return ids
+        return ids.strip()
 
 
 

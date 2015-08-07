@@ -1,6 +1,7 @@
 from source_py.data import DataLoader
 from source_py.model import ContentFilter
 
+import pandas as pd
 import numpy as np
 
 class Validator(object):
@@ -12,6 +13,8 @@ class Validator(object):
         :param validation_period: length of validation period in days
         :param loader: DataLoader
         """
+        print "Creating training and test sets..."
+
         self.start = np.datetime64(start_date)
         self.end = self.start + training_period
         self.valid_end = self.end + validation_period
@@ -29,6 +32,8 @@ class Validator(object):
         self.test = loader.coupons_train.copy(deep=True)
         self.test.drop(loader.coupons_train[display >= self.valid_end].index, inplace=True)
         self.test.drop(loader.coupons_train[display < self.end].index, inplace=True)
+
+        print "Splitting user transactions..."
 
         trans = loader.details_train
 
@@ -49,22 +54,83 @@ class Validator(object):
         # users
         self.users = loader.user_list
 
+        print "Getting actual purchases..."
+
+        # actual purchases/recommendations in Kaggle submission format
+        self.actual = self._actual_purchases()
+
 
     def run(self, mode="content_filter"):
-
+        """
+        :param mode: Model subclass
+        Trains the model on the training set and returns predictions for the test set.
+        """
         if mode == "content_filter":
+            print "Initializing model..."
             model = ContentFilter(self.train, self.test, self.users, self.purchases)
+            print "Training model..."
             model.run()
-            predictions = model.predict()
-            self.MAP(predictions)
+            print "Returning predictions..."
+            return model.predict()
         else:
             raise NotImplementedError
 
-    def MAP(self, predictions):
+
+    def _actual_purchases(self):
         """
-        :param predictions: pandas.DataFrame of predictions in Kaggle format
-        :return: Mean Average Precision using actual purchases in validation period
+        Returns a pandas.DataFrame of the actual coupon purchases during the validation period.
+        Format of the DataFrame is identical to the kaggle submission format.
         """
-        pass
+        results = []
+        tp = self.test_purchases
+        for index in self.users.index:
+            user_id = self.users.ix[index].USER_ID_hash
+            user_purchases = tp[tp.USER_ID_hash == user_id].sort("ITEM_COUNT", ascending=False, axis=0)
+            coups = user_purchases.COUPON_ID_hash.tolist()
+            ids = ""
+            for value in coups:
+                ids += value + " "
+            ids = ids.strip()
+            results.append([user_id, ids])
+        return pd.DataFrame(results, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
+
+
+    def mapk(self, k, actual, predicted):
+        """
+        :param k: max length of predicted sequence
+        :param actual: DataFrame of actual purchases for each user (kaggle format)
+        :param predicted: DataFrame of predicted purchases for each user (kaggle format)
+        :return: Mean Average Precision at k
+        """
+        print "Computing MAP score..."
+        scores = []
+        for i, j in zip(actual.index, predicted.index):
+            a = actual.ix[i].PURCHASED_COUPONS
+            p = predicted.ix[j].PURCHASED_COUPONS
+            scores.append(self.apk(k, a, p))
+        return np.array(scores).mean()
+
+
+    @staticmethod
+    def apk(k, actual, predicted):
+        """
+        :param k: max length of predicted sequence
+        :param actual: actual Coupon hash tags as a list
+        :param predicted: list of predicted Coupon hash tags
+        :return: Average Precision at k
+        """
+        actual = actual.split(' ')
+        predicted = predicted.split(' ')
+        score = 0.0
+        cnt = 0.0
+        for i in range(min(k, len(predicted))):
+            if predicted[i] in actual:
+                if predicted[i] not in predicted[0:i]:
+                    cnt += 1
+                    score += cnt/i
+        return score / min(len(actual),k)
+
+
+
 
 
