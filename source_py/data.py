@@ -16,4 +16,9 @@ class DataLoader(object):
         assert self.coupons_test.shape == (310,24)
         assert self.details_train.shape == (168996,6)
 
+        # convert to datetime format
+        fmt = '%Y-%m-%d %H:%M:%S'
+        self.coupons_train.DISPFROM = pd.to_datetime(self.coupons_train.DISPFROM, format=fmt)
+        self.details_train.I_DATE = pd.to_datetime(self.details_train.I_DATE, format=fmt)
+
 
