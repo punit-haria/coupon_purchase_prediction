@@ -15,9 +15,13 @@ if __name__ == '__main__':
     #run('submissions/testing.csv')
 
     load = DataLoader()
-    cv = Validator('2011-06-29', 250, 20, load)
+
+    # Note: training coupons span 362 days from 2011-06-27
+    cv = Validator('2011-06-27', 350, 7, load)
     predictions = cv.run()
     score = cv.mapk(10, cv.actual, predictions)
+
+    print "MAP Score: ", score
 
 
 

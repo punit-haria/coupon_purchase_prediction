@@ -70,7 +70,7 @@ class Validator(object):
             model = ContentFilter(self.train, self.test, self.users, self.purchases)
             print "Training model..."
             model.run()
-            print "Returning predictions..."
+            print "Making predictions..."
             return model.predict()
         else:
             raise NotImplementedError
@@ -101,6 +101,8 @@ class Validator(object):
         :param actual: DataFrame of actual purchases for each user (kaggle format)
         :param predicted: DataFrame of predicted purchases for each user (kaggle format)
         :return: Mean Average Precision at k
+
+        See https://github.com/benhamner/Metrics/blob/master/R/R/metrics.r
         """
         print "Computing MAP score..."
         scores = []
@@ -127,7 +129,7 @@ class Validator(object):
             if predicted[i] in actual:
                 if predicted[i] not in predicted[0:i]:
                     cnt += 1
-                    score += cnt/i
+                    score += cnt/(i+1)
         return score / min(len(actual),k)
 
 
