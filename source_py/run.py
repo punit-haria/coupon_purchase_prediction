@@ -12,7 +12,7 @@ def run(output_filename):
 
 if __name__ == '__main__':
 
-    #run('submissions/testing.csv')
+    #run('submissions/new_submission.csv')
 
     load = DataLoader()
 
