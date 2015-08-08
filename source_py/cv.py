@@ -59,6 +59,8 @@ class Validator(object):
         # actual purchases/recommendations in Kaggle submission format
         self.actual = self._actual_purchases()
 
+        self.model = None
+
 
     def run(self, mode="content_filter"):
         """
@@ -67,11 +69,11 @@ class Validator(object):
         """
         if mode == "content_filter":
             print "Initializing model..."
-            model = ContentFilter(self.train, self.test, self.users, self.purchases)
+            self.model = ContentFilter(self.train, self.test, self.users, self.purchases)
             print "Training model..."
-            model.run()
+            self.model.run()
             print "Making predictions..."
-            return model.predict()
+            return self.model.predict()
         else:
             raise NotImplementedError
 

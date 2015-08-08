@@ -23,6 +23,11 @@ if __name__ == '__main__':
 
     print "MAP Score: ", score
 
+    config = cv.model.get_configuration()
+    config += "\n\nMAP Score: " + str(score)
+    with open("selection/model_config_1.txt",'w') as f:
+        f.write(config)
+
 
 
 

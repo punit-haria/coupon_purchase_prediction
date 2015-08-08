@@ -52,4 +52,3 @@ class ItemProfile(object):
 
         # compute cosine similarities
         return left.dot(right.transpose())
-

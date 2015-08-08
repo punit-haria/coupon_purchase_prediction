@@ -6,7 +6,7 @@ import pandas as pd
 
 class Model(object):
 
-    def __init__(self, train, test, users, purchases, alpha=0.1):
+    def __init__(self, train, test, users, purchases, alpha=1.0):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
@@ -88,7 +88,7 @@ class Model(object):
 
 class ContentFilter(Model):
 
-    def __init__(self, train, test, users, purchases, alpha=0.1):
+    def __init__(self, train, test, users, purchases, alpha=1.0):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
@@ -165,6 +165,22 @@ class ContentFilter(Model):
         for value in coups:
             ids += value + " "
         return ids.strip()
+
+
+    def get_configuration(self):
+        result = "Model Configuration:\n\n"
+        result += "Fields:\n"
+        for field in self.fields:
+            result += field + "\t"
+        result += "\nNumerical:\n"
+        for field in self.numerical:
+            result += field + "\t"
+        result += "\nCategorical:\n"
+        for field in self.categorical:
+            result += field + "\t"
+        result += "\nItem Profile: Predict 10 items per user"
+        result += "\nNumerical Scaling factor: " + str(self.alpha)
+        return result
 
 
 
