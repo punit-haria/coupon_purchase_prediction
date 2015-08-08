@@ -127,6 +127,8 @@ class ContentFilter(Model):
         submission = []
 
         print "Userlist size: ", self.users.shape
+        print "Training coupons: ", self.train.shape
+        print "Test coupons: ", self.test.shape
 
         e = 0
         for index in self.users.index:

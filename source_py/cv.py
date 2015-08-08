@@ -69,7 +69,8 @@ class Validator(object):
         """
         if mode == "content_filter":
             print "Initializing model..."
-            self.model = ContentFilter(self.train, self.test, self.users, self.purchases)
+            self.model = ContentFilter(self.train, self.test,
+                                       self.users, self.purchases, alpha=1.0)
             print "Training model..."
             self.model.run()
             print "Making predictions..."
