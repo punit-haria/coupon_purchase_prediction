@@ -1,5 +1,5 @@
 from source_py.data import DataLoader
-from source_py.model import ContentFilter
+from source_py.model import Model
 from source_py.cv import Validator
 
 import numpy as np
@@ -8,7 +8,7 @@ from random import randint
 
 def run(output_filename):
     load = DataLoader()
-    model = ContentFilter(load.coupons_train, load.coupons_test,
+    model = Model(load.coupons_train, load.coupons_test,
                           load.user_list, load.details_train)
     model.run()
     final_df = model.predict()
@@ -59,9 +59,7 @@ if __name__ == '__main__':
 
     #run('submissions/submission.csv')
 
-    load = DataLoader()
-
-    #validate("selection/model_config.txt")
+    validate("selection/model_config.txt")
 
 
 

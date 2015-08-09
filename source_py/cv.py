@@ -1,5 +1,5 @@
 from source_py.data import DataLoader
-from source_py.model import ContentFilter
+from source_py.model import Model
 
 import pandas as pd
 import numpy as np
@@ -62,21 +62,17 @@ class Validator(object):
         self.model = None
 
 
-    def run(self, mode="content_filter"):
+    def run(self):
         """
-        :param mode: Model subclass
         Trains the model on the training set and returns predictions for the test set.
         """
-        if mode == "content_filter":
-            print "Initializing model..."
-            self.model = ContentFilter(self.train, self.test,
+        print "Initializing model..."
+        self.model = Model(self.train, self.test,
                                        self.users, self.purchases)
-            print "Training model..."
-            self.model.run()
-            print "Making predictions..."
-            return self.model.predict()
-        else:
-            raise NotImplementedError
+        print "Training model..."
+        self.model.run()
+        print "Making predictions..."
+        return self.model.predict()
 
 
     def _actual_purchases(self):
