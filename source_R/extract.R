@@ -50,6 +50,13 @@ assert_that(are_equal(ncol(coupons_area_train), 3))
 assert_that(are_equal(nrow(coupons_area_test), 2165))
 assert_that(are_equal(ncol(coupons_area_test), 3))
 
+locations <- read.delim("raw_data/prefecture_locations.csv",
+                        encoding="UTF-8",
+                        header=TRUE, sep=",", quote="")
+
+assert_that(are_equal(nrow(locations), 47))
+assert_that(are_equal(ncol(locations), 4))
+
 
 save.image(file="data/base.RData")
 

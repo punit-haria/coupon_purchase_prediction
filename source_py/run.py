@@ -9,7 +9,7 @@ from random import randint
 def run(output_filename):
     load = DataLoader()
     model = ContentFilter(load.coupons_train, load.coupons_test,
-                          load.user_list, load.details_train, alpha=1.0)
+                          load.user_list, load.details_train)
     model.run()
     final_df = model.predict()
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
@@ -25,13 +25,15 @@ def randomize():
     return start, training_period, validation_period
 
 
-def validate(alpha, output_filename):
+def validate(output_filename):
     load = DataLoader()
 
     # Note: training coupons span 362 days from 2011-06-27
-    start = '2011-06-27'
-    training_period = 350
-    validation_period = 7
+
+    #start = '2011-06-27'
+    #training_period = 350
+    #validation_period = 7
+    start, training_period, validation_period = randomize()
 
     config = "Split:\n"
     config += "Start date: " + start + "\n"
@@ -42,7 +44,7 @@ def validate(alpha, output_filename):
     print config
 
     cv = Validator(start, training_period, validation_period, load)
-    predictions = cv.run(alpha)
+    predictions = cv.run()
     score = cv.mapk(10, cv.actual, predictions)
 
     print "MAP Score: ", score
@@ -55,9 +57,11 @@ def validate(alpha, output_filename):
 
 if __name__ == '__main__':
 
-    run('submissions/submission.csv')
+    #run('submissions/submission.csv')
 
-    #validate(0.5, "selection/model_config.txt")
+    load = DataLoader()
+
+    #validate("selection/model_config.txt")
 
 
 

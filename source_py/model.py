@@ -88,12 +88,13 @@ class Model(object):
 
 class ContentFilter(Model):
 
-    def __init__(self, train, test, users, purchases, alpha=0.5):
+    def __init__(self, train, test, users, purchases, alpha=1.0):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
         :param users: pandas.DataFrame of user data
         :param purchases: pandas.DataFrame of All user purchases
+        :param alpha: scaling factor for numerical variables
         """
         super(ContentFilter, self).__init__(train, test, users, purchases, alpha)
 
