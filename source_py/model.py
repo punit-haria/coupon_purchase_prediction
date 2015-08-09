@@ -6,7 +6,7 @@ import pandas as pd
 
 class Model(object):
 
-    def __init__(self, train, test, users, purchases, alpha=1.0):
+    def __init__(self, train, test, users, purchases, alpha):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
@@ -88,7 +88,7 @@ class Model(object):
 
 class ContentFilter(Model):
 
-    def __init__(self, train, test, users, purchases, alpha=1.0):
+    def __init__(self, train, test, users, purchases, alpha=0.5):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
@@ -98,9 +98,14 @@ class ContentFilter(Model):
         super(ContentFilter, self).__init__(train, test, users, purchases, alpha)
 
         self.fields = ["COUPON_ID_hash", "CAPSULE_TEXT", "GENRE_NAME", "PRICE_RATE",
-                       "CATALOG_PRICE", "DISCOUNT_PRICE"]
-        self.numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE"]
-        self.categorical = ["CAPSULE_TEXT", "GENRE_NAME"]
+                       "CATALOG_PRICE", "DISCOUNT_PRICE", "VALIDPERIOD", "USABLE_DATE_MON",
+                       "USABLE_DATE_TUE", "USABLE_DATE_WED", "USABLE_DATE_THU", "USABLE_DATE_FRI",
+                       "USABLE_DATE_SAT", "USABLE_DATE_SUN", "USABLE_DATE_HOLIDAY",
+                       "USABLE_DATE_BEFORE_HOLIDAY",
+                       "large_area_name", "ken_name", "small_area_name"]
+        self.numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE", "VALIDPERIOD"]
+        self.categorical = ["CAPSULE_TEXT", "GENRE_NAME",
+                            "large_area_name", "ken_name", "small_area_name"]
 
         # keep relevant coupon fields only
         self.train = self.train[self.fields].copy(deep=True)

@@ -1,0 +1,18 @@
+Split:
+Start date: 2011-06-27
+End date: 2012-06-11
+Training period: 350
+Validation period: 7
+
+Model Configuration:
+
+Fields:
+COUPON_ID_hash	CAPSULE_TEXT	GENRE_NAME	PRICE_RATE	CATALOG_PRICE	DISCOUNT_PRICE	VALIDPERIOD	USABLE_DATE_MON	USABLE_DATE_TUE	USABLE_DATE_WED	USABLE_DATE_THU	USABLE_DATE_FRI	USABLE_DATE_SAT	USABLE_DATE_SUN	USABLE_DATE_HOLIDAY	USABLE_DATE_BEFORE_HOLIDAY	large_area_name	ken_name	small_area_name	
+Numerical:
+PRICE_RATE	CATALOG_PRICE	DISCOUNT_PRICE	VALIDPERIOD	
+Categorical:
+CAPSULE_TEXT	GENRE_NAME	large_area_name	ken_name	small_area_name	
+Item Profile: Predict 10 items per user
+Numerical Scaling factor: 2.0
+
+MAP Score: 0.00571025465667

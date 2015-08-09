@@ -5,6 +5,7 @@ from source_py.cv import Validator
 import numpy as np
 from random import randint
 
+
 def run(output_filename):
     load = DataLoader()
     model = ContentFilter(load.coupons_train, load.coupons_test,
@@ -14,14 +15,22 @@ def run(output_filename):
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
 
-def validate():
-    load = DataLoader()
-
-    # Note: training coupons span 362 days from 2011-06-27
+def randomize():
     start_offset = randint(0,50)
     training_period = randint(200,354 - start_offset)
     day_zero = np.datetime64('2011-06-27')
     start = str(day_zero + start_offset)
+    validation_period = 7
+
+    return start, training_period, validation_period
+
+
+def validate(alpha, output_filename):
+    load = DataLoader()
+
+    # Note: training coupons span 362 days from 2011-06-27
+    start = '2011-06-27'
+    training_period = 350
     validation_period = 7
 
     config = "Split:\n"
@@ -33,22 +42,23 @@ def validate():
     print config
 
     cv = Validator(start, training_period, validation_period, load)
-    predictions = cv.run()
+    predictions = cv.run(alpha)
     score = cv.mapk(10, cv.actual, predictions)
 
     print "MAP Score: ", score
 
     config += cv.model.get_configuration()
     config += "\n\nMAP Score: " + str(score)
-    with open("selection/model_config_1.txt",'w') as f:
+    with open(output_filename,'w') as f:
         f.write(config)
 
 
 if __name__ == '__main__':
 
-    #run('submissions/submission.csv')
+    run('submissions/submission.csv')
 
-    validate()
+    #validate(0.5, "selection/model_config.txt")
+
 
 
 

@@ -62,7 +62,7 @@ class Validator(object):
         self.model = None
 
 
-    def run(self, mode="content_filter"):
+    def run(self, alpha, mode="content_filter"):
         """
         :param mode: Model subclass
         Trains the model on the training set and returns predictions for the test set.
@@ -70,7 +70,7 @@ class Validator(object):
         if mode == "content_filter":
             print "Initializing model..."
             self.model = ContentFilter(self.train, self.test,
-                                       self.users, self.purchases, alpha=1.0)
+                                       self.users, self.purchases, alpha=alpha)
             print "Training model..."
             self.model.run()
             print "Making predictions..."
