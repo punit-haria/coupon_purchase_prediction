@@ -37,8 +37,8 @@ class Model(object):
         # expand categorical variables
         self.categorical = ["CAPSULE_TEXT", "GENRE_NAME",
                             "large_area_name", "ken_name", "small_area_name"]
-        self.categorical_weights = [2.0, 2.0,
-                                    1.5, 1.5, 1.5]
+        self.categorical_weights = [1.0, 1.0,
+                                    1.0, 1.0, 1.0]
         self._expand(self.categorical_weights)
 
         # scale numerical variables
@@ -47,7 +47,7 @@ class Model(object):
                        "USABLE_DATE_MON", "USABLE_DATE_TUE", "USABLE_DATE_WED",
                        "USABLE_DATE_THU", "USABLE_DATE_FRI", "USABLE_DATE_SAT",
                        "USABLE_DATE_SUN", "USABLE_DATE_HOLIDAY", "USABLE_DATE_BEFORE_HOLIDAY"]
-        self.numerical_weights = [2.0, 2.0, 2.0,
+        self.numerical_weights = [1.0, 1.0, 1.0,
                         1.0,
                         1.0, 1.0, 1.0,
                         1.0, 1.0, 1.0,
@@ -55,7 +55,7 @@ class Model(object):
         self._scale(self.numerical_weights)
 
         # replace missing values
-        self._replace_nan()
+        #self._replace_nan(0.)
 
         # construct ItemProfile using finalized training and test sets
         self.item_profile = ItemProfile(self.train, self.test)
@@ -174,19 +174,21 @@ class Model(object):
             self.test[field] = (weight * self.test[field]) + 1.0
 
 
-    def _replace_nan(self):
+    def _replace_nan(self, value):
         """
         Replaces null/nan values.
         """
-        self.train.fillna(value=0.5, inplace=True)
-        self.test.fillna(value=0.5, inplace=True)
+        self.train.fillna(value=value, inplace=True)
+        self.test.fillna(value=value, inplace=True)
 
 
     def get_configuration(self):
         result = "Model Configuration:\n"
         result += "\nFields:\n" + str(self.fields)
-        result += "\nVariable weights: " + str(self.weights)
-        result += "\nCategorical:\n" + str(self.categorical)
+        result += "\n\nCategorical:\n" + str(self.categorical)
+        result += "\nWeights: " + str(self.categorical_weights)
+        result += "\n\nNumerical:\n" + str(self.numerical)
+        result += "\nWeights: " + str(self.numerical_weights)
         result += "\nItem Profile: Predict 10 items per user" + "\n"
         return result
 
