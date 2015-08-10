@@ -47,12 +47,12 @@ class Model(object):
                        "USABLE_DATE_MON", "USABLE_DATE_TUE", "USABLE_DATE_WED",
                        "USABLE_DATE_THU", "USABLE_DATE_FRI", "USABLE_DATE_SAT",
                        "USABLE_DATE_SUN", "USABLE_DATE_HOLIDAY", "USABLE_DATE_BEFORE_HOLIDAY"]
-        self.weights = pd.Series([2.0, 2.0, 2.0,
-                                  1.0,
-                                  1.0, 1.0, 1.0,
-                                  1.0, 1.0, 1.0,
-                                  1.0, 1.0, 1.0])
-        self._scale(self.weights)
+        self.numerical_weights = [2.0, 2.0, 2.0,
+                        1.0,
+                        1.0, 1.0, 1.0,
+                        1.0, 1.0, 1.0,
+                        1.0, 1.0, 1.0]
+        self._scale(self.numerical_weights)
 
         # replace missing values
         self._replace_nan()
@@ -134,7 +134,9 @@ class Model(object):
         for field, weight in zip(self.categorical, weights):
             df = weight * pd.get_dummies(merged[field])
             merged = pd.concat([merged, df])
-            merged.drop([field], inplace=True)
+
+        # drop original categoricals
+        merged.drop(self.categorical, axis=1, inplace=True)
 
         # split back into training and test sets
         self.train = pd.DataFrame.copy(merged[merged.type == "train"], deep=True)
@@ -158,14 +160,18 @@ class Model(object):
         Note: NO future information is introduced. Test set normalization
         is done using training set min/max values.
         """
+        # scale between 0 and 1
         df = self.train[self.numerical]
         train_min = df.min()
         train_max = df.max()
-        self.train[self.numerical] = \
-            (weights * ((df - train_min) / (train_max - train_min))) + 1.0
+        self.train[self.numerical] = (df - train_min) / (train_max - train_min)
         df = self.test[self.numerical]
-        self.test[self.numerical] = \
-            (weights * ((df - train_min) / (train_max - train_min))) + 1.0
+        self.test[self.numerical] = (df - train_min) / (train_max - train_min)
+
+        # apply weights and transform
+        for field, weight in zip(self.numerical, weights):
+            self.train[field] = (weight * self.train[field]) + 1.0
+            self.test[field] = (weight * self.test[field]) + 1.0
 
 
     def _replace_nan(self):

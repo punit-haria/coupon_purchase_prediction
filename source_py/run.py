@@ -30,9 +30,7 @@ def validate(output_filename):
 
     # Note: training coupons span 362 days from 2011-06-27
 
-    #start = '2011-06-27'
-    #training_period = 350
-    #validation_period = 7
+    #start, training_period, validation_period = ('2011-06-27', 350, 7)
     start, training_period, validation_period = randomize()
 
     config = "Split:\n"
