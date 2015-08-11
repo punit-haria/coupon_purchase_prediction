@@ -37,9 +37,9 @@ class Model(object):
         # expand categorical variables
         self.categorical = ["CAPSULE_TEXT", "GENRE_NAME",
                             "large_area_name", "ken_name", "small_area_name"]
-        self.categorical_weights = [1.0, 1.0,
-                                    1.0, 1.0, 1.0]
-        self._expand(self.categorical_weights)
+        self.categorical_weights = [3.0, 3.0,
+                                    3.0, 3.0, 3.0]
+        self._expand(self.categorical_weights, 1.0)
 
         # scale numerical variables
         self.numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE",
@@ -52,10 +52,10 @@ class Model(object):
                         1.0, 1.0, 1.0,
                         1.0, 1.0, 1.0,
                         1.0, 1.0, 1.0]
-        self._scale(self.numerical_weights)
+        self._scale(self.numerical_weights, 1.0)
 
         # replace missing values
-        #self._replace_nan(0.)
+        self._replace_nan(0.)
 
         # construct ItemProfile using finalized training and test sets
         self.item_profile = ItemProfile(self.train, self.test)
@@ -118,10 +118,11 @@ class Model(object):
         return ids.strip()
 
 
-    def _expand(self, weights):
+    def _expand(self, weights, transform):
         """
         Expands categorical variables in training and test sets into
-        0-1 dummy variables, and then scales them according to input weights.
+        0-1 dummy variables, scales them according to input weights, and
+        finally transforms upwards slightly.
         No future information is introduced from the test set.
         :param weights: list of scaling weights corresponding to categorical variables
         """
@@ -132,8 +133,8 @@ class Model(object):
 
         # expand and scale categorical variables
         for field, weight in zip(self.categorical, weights):
-            df = weight * pd.get_dummies(merged[field])
-            merged = pd.concat([merged, df])
+            df = (weight * pd.get_dummies(merged[field])) + transform
+            merged = pd.concat([merged, df], axis=1)
 
         # drop original categoricals
         merged.drop(self.categorical, axis=1, inplace=True)
@@ -154,9 +155,10 @@ class Model(object):
 
 
 
-    def _scale(self, weights):
+    def _scale(self, weights, transform):
         """
         Normalizes all variables in the training and test sets using a set of weights.
+        Variables are then transformed upwards slightly.
         Note: NO future information is introduced. Test set normalization
         is done using training set min/max values.
         """
@@ -170,8 +172,8 @@ class Model(object):
 
         # apply weights and transform
         for field, weight in zip(self.numerical, weights):
-            self.train[field] = (weight * self.train[field]) + 1.0
-            self.test[field] = (weight * self.test[field]) + 1.0
+            self.train[field] = (weight * self.train[field]) + transform
+            self.test[field] = (weight * self.test[field]) + transform
 
 
     def _replace_nan(self, value):
@@ -189,7 +191,11 @@ class Model(object):
         result += "\nWeights: " + str(self.categorical_weights)
         result += "\n\nNumerical:\n" + str(self.numerical)
         result += "\nWeights: " + str(self.numerical_weights)
-        result += "\nItem Profile: Predict 10 items per user" + "\n"
+        result += "\nItem Profile: Predict 10 items per user"
+        result += "\nTrain data: "+str(self.train.shape)
+        result += "\nTest data: "+str(self.test.shape)
+        result += "\nUser list: "+str(self.users.shape)
+        result += "\nPurchases: "+str(self.purchases.shape)
         return result
 
 

@@ -1,11 +1,11 @@
 
-3. implement architecture for cross validation (including MAP function)
-4. create better model for User.num_coupons() (markov process?)
-5. optimize hyperparameters: 
-	User.num_coupons(), 
+5. optimize hyperparameters:
 	numerical variable weights, 
 	weights for user coupon purchases by time, 
 	different similarity functions,
+	include visit data,
 	etc
 6. start thinking about collaborative filtering
+7. look at netflix prize solution
+8. use machine learning!
 	

@@ -14,6 +14,8 @@ def run(output_filename):
     final_df = model.predict()
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
+    return model
+
 
 def randomize():
     start_offset = randint(0,50)
@@ -30,7 +32,7 @@ def validate(output_filename):
 
     # Note: training coupons span 362 days from 2011-06-27
 
-    start, training_period, validation_period = ('2011-06-27', 350, 7)
+    start, training_period, validation_period = ('2011-06-27', 354, 7)
     #start, training_period, validation_period = randomize()
 
     config = "Split:\n"
@@ -52,12 +54,14 @@ def validate(output_filename):
     with open(output_filename,'w') as f:
         f.write(config)
 
+    return cv
+
 
 if __name__ == '__main__':
 
-    #run('submissions/submission.csv')
+    #model = run('submissions/submission.csv')
 
-    validate("selection/model_config.txt")
+    cv = validate("selection/model_config.txt")
 
 
 

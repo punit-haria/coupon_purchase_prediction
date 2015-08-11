@@ -11,12 +11,15 @@ Fields:
 
 Categorical:
 ['CAPSULE_TEXT', 'GENRE_NAME', 'large_area_name', 'ken_name', 'small_area_name']
-Weights: [1.0, 1.0, 1.0, 1.0, 1.0]
+Weights: [3.0, 3.0, 3.0, 3.0, 3.0]
 
 Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
+Train data: (18663, 163)
+Test data: (359, 163)
+User list: (22873, 6)
+Purchases: (162345, 6)
 
-
-MAP Score: 0.00130706949369
+MAP Score: 0.00433539712149
