@@ -54,10 +54,8 @@ def validate(output_filename, start, training_period, validation_period, output)
 
 
 def parallel_validate():
-    #start, training_period, validation_period = ('2011-06-27', 354, 7)
-    #start, training_period, validation_period = randomize()
-
     # Note: training coupons span 362 days from 2011-06-27
+    #start, training_period, validation_period = ('2011-06-27', 354, 7)
 
     output = mp.Queue()
 
@@ -91,6 +89,12 @@ if __name__ == '__main__':
     #model = run('submissions/submission.csv')
 
     res = parallel_validate()
+
+    mapscores = []
+    for tup in res:
+        mapscores.append(tup[0])
+
+    print "FINAL MAP SCORE: ", np.array(mapscores).mean()
 
 
 

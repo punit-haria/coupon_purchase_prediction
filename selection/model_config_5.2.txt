@@ -1,7 +1,7 @@
 Split:
-Start date: 2011-06-27
-End date: 2012-04-22
-Training period: 300
+Start date: 2011-07-11
+End date: 2012-01-30
+Training period: 203
 Validation period: 7
 
 Model Configuration:
@@ -17,9 +17,9 @@ Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
-Train data: (16370, 161)
-Test data: (359, 161)
+Train data: (11277, 161)
+Test data: (341, 161)
 User list: (22873, 6)
-Purchases: (137790, 6)
+Purchases: (94185, 6)
 
-MAP Score: 0.00620017490181
+MAP Score: 0.00630722931172

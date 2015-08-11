@@ -1,7 +1,7 @@
 
-4. There is a problem with replacing missing values with 0.0 in USABLE_*, VALIDPERIOD.
-    It seems like without replacement, the score is around 0.005-0.006 (0.009??). With replacement,
-    the score is 0.003 (0.007??). Why??
+4. With replacing NaNs: 0.00646
+    Without replacing NaNs: 0.00577
+    My guess: null hypothesis
 5. optimize hyperparameters:
 	numerical variable weights, 
 	weights for user coupon purchases by time, 
