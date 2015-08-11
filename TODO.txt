@@ -1,5 +1,4 @@
 
-3. Use parallelization to apply validation 3-5 times.
 4. There is a problem with replacing missing values with 0.0 in USABLE_*, VALIDPERIOD.
     It seems like without replacement, the score is around 0.005-0.006 (0.009??). With replacement,
     the score is 0.003 (0.007??). Why??

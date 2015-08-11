@@ -50,7 +50,7 @@ def validate(output_filename, start, training_period, validation_period, output)
     with open(output_filename,'w') as f:
         f.write(config)
 
-    output.put(cv)
+    output.put([cv.score, config])
 
 
 def parallel_validate():
@@ -61,12 +61,19 @@ def parallel_validate():
 
     output = mp.Queue()
 
-    processes = [
-        mp.Process(target=validate, args=('selection/model_config_5.1.txt','2011-06-27',250,7,output)),
-        mp.Process(target=validate, args=('selection/model_config_5.2.txt','2011-06-27',300,7,output)),
-        mp.Process(target=validate, args=('selection/model_config_5.3.txt','2011-06-27',325,7,output)),
-        mp.Process(target=validate, args=('selection/model_config_5.4.txt','2011-06-27',351,7,output))
-    ]
+    processes = []
+    start, training_period, validation_period = randomize()
+    processes.append(mp.Process(target=validate, args=('selection/model_config_5.1.txt',
+                                      start, training_period, validation_period,output)))
+    start, training_period, validation_period = randomize()
+    processes.append(mp.Process(target=validate, args=('selection/model_config_5.2.txt',
+                                      start, training_period, validation_period,output)))
+    start, training_period, validation_period = randomize()
+    processes.append(mp.Process(target=validate, args=('selection/model_config_5.3.txt',
+                                      start, training_period, validation_period,output)))
+    start, training_period, validation_period = randomize()
+    processes.append(mp.Process(target=validate, args=('selection/model_config_5.4.txt',
+                                      start, training_period, validation_period,output)))
 
     for p in processes:
         p.start()
