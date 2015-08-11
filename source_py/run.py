@@ -4,6 +4,7 @@ from source_py.cv import Validator
 
 import numpy as np
 from random import randint
+import multiprocessing as mp
 
 
 def run(output_filename):
@@ -27,13 +28,8 @@ def randomize():
     return start, training_period, validation_period
 
 
-def validate(output_filename):
+def validate(output_filename, start, training_period, validation_period, output):
     load = DataLoader()
-
-    # Note: training coupons span 362 days from 2011-06-27
-
-    start, training_period, validation_period = ('2011-06-27', 354, 7)
-    #start, training_period, validation_period = randomize()
 
     config = "Split:\n"
     config += "Start date: " + start + "\n"
@@ -45,23 +41,51 @@ def validate(output_filename):
 
     cv = Validator(start, training_period, validation_period, load)
     predictions = cv.run()
-    score = cv.mapk(10, cv.actual, predictions)
+    cv.score = cv.mapk(10, cv.actual, predictions)
 
-    print "MAP Score: ", score
+    print "MAP Score: ", cv.score
 
     config += cv.model.get_configuration()
-    config += "\n\nMAP Score: " + str(score)
+    config += "\n\nMAP Score: " + str(cv.score)
     with open(output_filename,'w') as f:
         f.write(config)
 
-    return cv
+    output.put(cv)
+
+
+def parallel_validate():
+    #start, training_period, validation_period = ('2011-06-27', 354, 7)
+    #start, training_period, validation_period = randomize()
+
+    # Note: training coupons span 362 days from 2011-06-27
+
+    output = mp.Queue()
+
+    processes = [
+        mp.Process(target=validate, args=('selection/model_config_5.1.txt','2011-06-27',250,7,output)),
+        mp.Process(target=validate, args=('selection/model_config_5.2.txt','2011-06-27',300,7,output)),
+        mp.Process(target=validate, args=('selection/model_config_5.3.txt','2011-06-27',325,7,output)),
+        mp.Process(target=validate, args=('selection/model_config_5.4.txt','2011-06-27',351,7,output))
+    ]
+
+    for p in processes:
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    print "Finished processing!"
+
+    return [output.get() for p in processes]
 
 
 if __name__ == '__main__':
 
     #model = run('submissions/submission.csv')
 
-    cv = validate("selection/model_config.txt")
+    res = parallel_validate()
+
+
 
 
 
