@@ -98,8 +98,7 @@ class Model(object):
         """
         # get similarity scores for each test coupon
         scores = self.item_profile.similarity(user.coupons.index, self.test.index)
-        # x-axis: test coupons, y-axis: user coupons
-        scores = scores.transpose()
+        scores = scores.transpose() # now: (test coupons, user coupons)
         # compute mean similarity score for each test coupon
         scores["mean"] = scores.mean(axis=1)
         # sort by descending order of mean score

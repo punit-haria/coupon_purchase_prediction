@@ -53,7 +53,6 @@ def validate(start, training_period, validation_period, output):
 
 def parallel_validate(output_file):
     # Note: training coupons span 362 days from 2011-06-27
-    #start, training_period, validation_period = ('2011-06-27', 354, 7)
 
     output = mp.Queue()
 
@@ -99,9 +98,9 @@ def parallel_validate(output_file):
 
 if __name__ == '__main__':
 
-    #model = run('submissions/submission.csv')
+    model = run('submissions/submission.csv')
 
-    parallel_validate('selection/model_config_7.txt')
+    #parallel_validate('selection/model_config_8.txt')
 
 
 
