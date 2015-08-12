@@ -28,7 +28,7 @@ def randomize():
     return start, training_period, validation_period
 
 
-def validate(output_filename, start, training_period, validation_period, output):
+def validate(start, training_period, validation_period, output):
     load = DataLoader()
 
     config = "Split:\n"
@@ -47,13 +47,11 @@ def validate(output_filename, start, training_period, validation_period, output)
 
     config += cv.model.get_configuration()
     config += "\n\nMAP Score: " + str(cv.score)
-    with open(output_filename,'w') as f:
-        f.write(config)
 
     output.put([cv.score, config])
 
 
-def parallel_validate():
+def parallel_validate(output_file):
     # Note: training coupons span 362 days from 2011-06-27
     #start, training_period, validation_period = ('2011-06-27', 354, 7)
 
@@ -61,16 +59,16 @@ def parallel_validate():
 
     processes = []
     start, training_period, validation_period = randomize()
-    processes.append(mp.Process(target=validate, args=('selection/model_config_5.1.txt',
+    processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
     start, training_period, validation_period = randomize()
-    processes.append(mp.Process(target=validate, args=('selection/model_config_5.2.txt',
+    processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
     start, training_period, validation_period = randomize()
-    processes.append(mp.Process(target=validate, args=('selection/model_config_5.3.txt',
+    processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
     start, training_period, validation_period = randomize()
-    processes.append(mp.Process(target=validate, args=('selection/model_config_5.4.txt',
+    processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
 
     for p in processes:
@@ -79,22 +77,36 @@ def parallel_validate():
     for p in processes:
         p.join()
 
-    print "Finished processing!"
+    print "Processes complete!"
 
-    return [output.get() for p in processes]
+    res = [output.get() for p in processes]
+
+    mapscores = []
+    config = ""
+    for tup in res:
+        mapscores.append(tup[0])
+        config += tup[1] + "\n\n----------------------------\n\n"
+
+    config += "FINAL MAP SCORE: " + str(np.array(mapscores).mean())
+
+    print config
+
+    with open(output_file,'w') as f:
+        f.write(config)
+
+
 
 
 if __name__ == '__main__':
 
     #model = run('submissions/submission.csv')
 
-    res = parallel_validate()
+    parallel_validate('selection/model_config_7.txt')
 
-    mapscores = []
-    for tup in res:
-        mapscores.append(tup[0])
 
-    print "FINAL MAP SCORE: ", np.array(mapscores).mean()
+
+
+
 
 
 
