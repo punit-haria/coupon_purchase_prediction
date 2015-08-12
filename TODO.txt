@@ -7,6 +7,12 @@ My guess: null hypothesis
 
 TODO:
 
+3.	a) check that validation period is in fact 7 days
+	b) check that submissions do not have duplicate entries for a given user
+	c) find bottleneck in code
+	d) use a grid search to find the best set of hyper parameters for EACH user; 
+		then take the mean of this dataset as final weights;
+		or use a regression model to find weights that maximize the MAP score
 4. add code for weighing each similarity score on
 	a) user coupons
 	b) user visited coupons
