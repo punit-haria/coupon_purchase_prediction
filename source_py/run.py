@@ -40,6 +40,11 @@ def validate(start, training_period, validation_period, output):
     print config
 
     cv = Validator(start, training_period, validation_period, load)
+
+    print cv.start
+    print cv.end
+    print cv.valid_end
+
     predictions = cv.run()
     cv.score = cv.mapk(10, cv.actual, predictions)
 
@@ -98,9 +103,9 @@ def parallel_validate(output_file):
 
 if __name__ == '__main__':
 
-    model = run('submissions/submission.csv')
+    #model = run('submissions/submission.csv')
 
-    #parallel_validate('selection/model_config_8.txt')
+    parallel_validate('selection/model_config_8.txt')
 
 
 
