@@ -5,9 +5,13 @@ With replacing NaNs: 0.00646
 Without replacing NaNs: 0.00577
 My guess: null hypothesis
 
+Validation Checks:
+
+- check that submissions do not have duplicate entries for a given user
+
 TODO:
 
-3.	b) check that submissions do not have duplicate entries for a given user
+3.
 	c) find bottleneck in code
 	d) use a grid search to find the best set of hyper parameters for EACH user; 
 		then take the mean of this dataset as final weights;

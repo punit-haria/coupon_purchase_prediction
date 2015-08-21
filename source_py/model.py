@@ -1,5 +1,6 @@
 from source_py.item import ItemProfile
 from source_py.user import User
+from source_py.timer import Timer
 
 import pandas as pd
 
@@ -60,6 +61,8 @@ class Model(object):
         # construct ItemProfile using finalized training and test sets
         self.item_profile = ItemProfile(self.train, self.test)
 
+        self.timer = Timer()
+
 
     @staticmethod
     def run():
@@ -81,9 +84,14 @@ class Model(object):
 
         e = 0
         for index in self.users.index:
+            self.timer.start()
             user = User(self.users, index, self.purchases, self.train)
+            self.timer.stopstart()
             coupons = self._recommend(user)
+            self.timer.stopstart()
             submission.append([user.get_id(), coupons])
+            self.timer.stop()
+            self.timer.save()
             e += 1
             if e % 1000 == 0:
                 print "At User: ", e
@@ -110,6 +118,10 @@ class Model(object):
         top_indices = scores.head(n=top).index
         # get top coupon IDs
         coups = self.test.ix[top_indices].COUPON_ID_hash.tolist()
+
+        # check that there are no duplicates
+        #assert len(coups) == len(set(coups))
+
         # return as space-delimited string
         ids = ""
         for value in coups:
