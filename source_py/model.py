@@ -1,5 +1,4 @@
 from source_py.item import ItemProfile
-from source_py.user import User
 from source_py.timer import Timer
 
 import pandas as pd
@@ -84,14 +83,16 @@ class Model(object):
 
         e = 0
         for index in self.users.index:
-            self.timer.start()
-            user = User(self.users, index, self.purchases, self.train)
-            self.timer.stopstart()
-            coupons = self._recommend(user)
-            self.timer.stopstart()
-            submission.append([user.get_id(), coupons])
-            self.timer.stop()
-            self.timer.save()
+            # get user
+            user = self.users.ix[index]
+            # get user purchases
+            user_buys = self.purchases[self.purchases.USER_ID_hash == user.USER_ID_hash]
+            # get corresponding coupons
+            coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
+            # get recommendations
+            coupons = self._recommend(coupons)
+            # add to submissions
+            submission.append([user.USER_ID_hash, coupons])
             e += 1
             if e % 1000 == 0:
                 print "At User: ", e
@@ -99,28 +100,25 @@ class Model(object):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _recommend(self, user):
+    def _recommend(self, coupons):
         """
         Recommends a ranked sequence of Coupons for a provided User.
-        :param user: User
+        :param coupons: user's purchased coupons
         """
         # get similarity scores for each test coupon
-        scores = self.item_profile.similarity(user.coupons.index, self.test.index)
+        scores = self.item_profile.similarity(coupons.index, self.test.index)
         scores = scores.transpose() # now: (test coupons, user coupons)
         # compute mean similarity score for each test coupon
         scores["mean"] = scores.mean(axis=1)
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
-        top = User.num_coupons()
+        top = 10
         if top < 1:
             return ""
         top_indices = scores.head(n=top).index
         # get top coupon IDs
         coups = self.test.ix[top_indices].COUPON_ID_hash.tolist()
-
-        # check that there are no duplicates
-        #assert len(coups) == len(set(coups))
 
         # return as space-delimited string
         ids = ""

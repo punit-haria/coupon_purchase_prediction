@@ -12,7 +12,6 @@ Validation Checks:
 TODO:
 
 3.
-	c) find bottleneck in code
 	d) use a grid search to find the best set of hyper parameters for EACH user; 
 		then take the mean of this dataset as final weights;
 		or use a regression model to find weights that maximize the MAP score
