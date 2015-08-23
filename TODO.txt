@@ -5,27 +5,26 @@ With replacing NaNs: 0.00646
 Without replacing NaNs: 0.00577
 My guess: null hypothesis
 
-Validation Checks:
+Validation:
 
 - check that submissions do not have duplicate entries for a given user
 
 TODO:
 
-3.
-	d) use a grid search to find the best set of hyper parameters for EACH user; 
+3.	d) use a grid search to find the best set of hyper parameters for EACH user;
 		then take the mean of this dataset as final weights;
 		or use a regression model to find weights that maximize the MAP score
+	e) calculate Coverage metric for model (Item space and User space coverage)
 4. add code for weighing each similarity score on
 	a) user coupons
 	b) user visited coupons
 	c) coupons derived from similar users
-5. how to use machine learning in collaborative filtering / user-user comparisons?
-6. optimize hyperparameters:
+5. optimize hyperparameters:
 	numerical variable weights, 
 	weights for user coupon purchases by time, 
 	different similarity functions,
 	including visit/similar user parameters,
 	etc
-7. look at netflix prize solution
+6. look at netflix prize solution
 
 	

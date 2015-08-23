@@ -12,7 +12,7 @@ def run(output_filename):
     model = Model(load.coupons_train, load.coupons_test,
                           load.user_list, load.details_train)
     model.run()
-    final_df = model.predict()
+    final_df = model.predict
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
     return model
