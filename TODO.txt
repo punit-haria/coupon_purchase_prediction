@@ -1,30 +1,38 @@
-
 Notes:
 
 With replacing NaNs: 0.00646
 Without replacing NaNs: 0.00577
-My guess: null hypothesis
+My guess: null hypothesis (i.e. no difference)
 
 Validation:
 
 - check that submissions do not have duplicate entries for a given user
 
+Questions:
+
+- is purchased list a subset of visited list?
+- how does the distribution of #purchased compare with the distribution of #visited?
+-
+
 TODO:
 
-3.	d) use a grid search to find the best set of hyper parameters for EACH user;
-		then take the mean of this dataset as final weights;
-		or use a regression model to find weights that maximize the MAP score
-	e) calculate Coverage metric for model (Item space and User space coverage)
-4. add code for weighing each similarity score on
+4. Add code for weighing each similarity score on
 	a) user coupons
 	b) user visited coupons
-	c) coupons derived from similar users
-5. optimize hyperparameters:
+	c) recent coupons vs. old coupons (purchased date?, release date?, expire date?)
+	d) coupons derived from similar users
+5. Calculate Coverage metric for model (Item space and User space coverage)
+6. Expand the MAP score metric in the code so that we can see which users were predicted correctly
+	and which ones were predicted wrong. This will be useful when comparing models.
+6. Optimize hyperparameters:
 	numerical variable weights, 
 	weights for user coupon purchases by time, 
 	different similarity functions,
 	including visit/similar user parameters,
 	etc
 6. look at netflix prize solution
+
+
+
 
 	

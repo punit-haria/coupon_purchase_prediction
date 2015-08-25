@@ -1,7 +1,7 @@
 Split:
-Start date: 2011-08-06
-End date: 2012-05-01
-Training period: 269
+Start date: 2011-07-25
+End date: 2012-03-21
+Training period: 240
 Validation period: 7
 
 Model Configuration:
@@ -17,19 +17,19 @@ Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
-Train data: (14823, 160)
-Test data: (242, 160)
+Train data: (13389, 161)
+Test data: (446, 161)
 User list: (22873, 6)
-Purchases: (124773, 6)
+Purchases: (110292, 6)
 
-MAP Score: 0.00430705509395
+MAP Score: 0.00411825303967
 
 ----------------------------
 
 Split:
-Start date: 2011-07-31
-End date: 2012-04-27
-Training period: 271
+Start date: 2011-07-09
+End date: 2012-03-06
+Training period: 241
 Validation period: 7
 
 Model Configuration:
@@ -45,19 +45,19 @@ Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
-Train data: (14916, 160)
-Test data: (283, 160)
+Train data: (13423, 161)
+Test data: (388, 161)
 User list: (22873, 6)
-Purchases: (124687, 6)
+Purchases: (111466, 6)
 
-MAP Score: 0.00439969531389
+MAP Score: 0.00446747620921
 
 ----------------------------
 
 Split:
-Start date: 2011-07-02
-End date: 2012-04-19
-Training period: 292
+Start date: 2011-07-20
+End date: 2012-03-19
+Training period: 243
 Validation period: 7
 
 Model Configuration:
@@ -73,19 +73,19 @@ Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
-Train data: (16127, 161)
-Test data: (369, 161)
+Train data: (13491, 161)
+Test data: (467, 161)
 User list: (22873, 6)
-Purchases: (136250, 6)
+Purchases: (111500, 6)
 
-MAP Score: 0.00554937812818
+MAP Score: 0.0045845134009
 
 ----------------------------
 
 Split:
-Start date: 2011-06-27
-End date: 2012-05-11
-Training period: 319
+Start date: 2011-06-30
+End date: 2012-04-28
+Training period: 303
 Validation period: 7
 
 Model Configuration:
@@ -101,13 +101,13 @@ Numerical:
 ['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
 Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Item Profile: Predict 10 items per user
-Train data: (17196, 161)
-Test data: (305, 161)
+Train data: (16678, 161)
+Test data: (267, 161)
 User list: (22873, 6)
-Purchases: (145676, 6)
+Purchases: (140743, 6)
 
-MAP Score: 0.00499031401132
+MAP Score: 0.0041069028616
 
 ----------------------------
 
-FINAL MAP SCORE: 0.00481161063684
+FINAL MAP SCORE: 0.00431928637785

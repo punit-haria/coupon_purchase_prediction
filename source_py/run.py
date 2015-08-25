@@ -12,7 +12,7 @@ def run(output_filename):
     model = Model(load.coupons_train, load.coupons_test,
                           load.user_list, load.details_train)
     model.run()
-    final_df = model.predict
+    final_df = model.predict()
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
     return model
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     #model = run('submissions/submission.csv')
 
-    parallel_validate('selection/model_config_8.txt')
+    parallel_validate('selection/model_config_9.txt')
 
 
 

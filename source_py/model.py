@@ -39,7 +39,7 @@ class Model(object):
                             "large_area_name", "ken_name", "small_area_name"]
         self.categorical_weights = [3.0, 3.0,
                                     3.0, 3.0, 3.0]
-        self._expand(self.categorical_weights, 1.0)
+        self._expand(self.categorical_weights, transform=1.0)
 
         # scale numerical variables
         self.numerical = ["PRICE_RATE", "CATALOG_PRICE", "DISCOUNT_PRICE",
@@ -52,15 +52,15 @@ class Model(object):
                         1.0, 1.0, 1.0,
                         1.0, 1.0, 1.0,
                         1.0, 1.0, 1.0]
-        self._scale(self.numerical_weights, 1.0)
+        self._scale(self.numerical_weights, transform=1.0)
 
         # replace missing values
         self._replace_nan(0.)
 
+        self.timer = Timer()
+
         # construct ItemProfile using finalized training and test sets
         self.item_profile = ItemProfile(self.train, self.test)
-
-        self.timer = Timer()
 
 
     @staticmethod

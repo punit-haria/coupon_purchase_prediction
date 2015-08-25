@@ -72,7 +72,7 @@ class Validator(object):
         print "Training model..."
         self.model.run()
         print "Making predictions..."
-        return self.model.predict
+        return self.model.predict()
 
     def _actual_purchases(self):
         """
