@@ -1,0 +1,113 @@
+Split:
+Start date: 2011-08-04
+End date: 2012-02-20
+Training period: 200
+Validation period: 7
+
+Model Configuration:
+
+Fields:
+['COUPON_ID_hash', 'CAPSULE_TEXT', 'GENRE_NAME', 'PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY', 'large_area_name', 'ken_name', 'small_area_name']
+
+Categorical:
+['CAPSULE_TEXT', 'GENRE_NAME', 'large_area_name', 'ken_name', 'small_area_name']
+Weights: [3.0, 3.0, 3.0, 3.0, 3.0]
+
+Numerical:
+['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
+Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+Item Profile: Predict 10 items per user
+Train data: (11113, 160)
+Test data: (470, 160)
+User list: (22873, 6)
+Purchases: (91886, 6)
+
+MAP Score: 0.230129226321
+
+----------------------------
+
+Split:
+Start date: 2011-08-15
+End date: 2012-03-13
+Training period: 211
+Validation period: 7
+
+Model Configuration:
+
+Fields:
+['COUPON_ID_hash', 'CAPSULE_TEXT', 'GENRE_NAME', 'PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY', 'large_area_name', 'ken_name', 'small_area_name']
+
+Categorical:
+['CAPSULE_TEXT', 'GENRE_NAME', 'large_area_name', 'ken_name', 'small_area_name']
+Weights: [3.0, 3.0, 3.0, 3.0, 3.0]
+
+Numerical:
+['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
+Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+Item Profile: Predict 10 items per user
+Train data: (11937, 160)
+Test data: (415, 160)
+User list: (22873, 6)
+Purchases: (98660, 6)
+
+MAP Score: 0.221282852787
+
+----------------------------
+
+Split:
+Start date: 2011-08-12
+End date: 2012-05-22
+Training period: 284
+Validation period: 7
+
+Model Configuration:
+
+Fields:
+['COUPON_ID_hash', 'CAPSULE_TEXT', 'GENRE_NAME', 'PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY', 'large_area_name', 'ken_name', 'small_area_name']
+
+Categorical:
+['CAPSULE_TEXT', 'GENRE_NAME', 'large_area_name', 'ken_name', 'small_area_name']
+Weights: [3.0, 3.0, 3.0, 3.0, 3.0]
+
+Numerical:
+['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
+Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+Item Profile: Predict 10 items per user
+Train data: (15424, 160)
+Test data: (388, 160)
+User list: (22873, 6)
+Purchases: (131163, 6)
+
+MAP Score: 0.121864169117
+
+----------------------------
+
+Split:
+Start date: 2011-07-02
+End date: 2012-04-24
+Training period: 297
+Validation period: 7
+
+Model Configuration:
+
+Fields:
+['COUPON_ID_hash', 'CAPSULE_TEXT', 'GENRE_NAME', 'PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY', 'large_area_name', 'ken_name', 'small_area_name']
+
+Categorical:
+['CAPSULE_TEXT', 'GENRE_NAME', 'large_area_name', 'ken_name', 'small_area_name']
+Weights: [3.0, 3.0, 3.0, 3.0, 3.0]
+
+Numerical:
+['PRICE_RATE', 'CATALOG_PRICE', 'DISCOUNT_PRICE', 'VALIDPERIOD', 'USABLE_DATE_MON', 'USABLE_DATE_TUE', 'USABLE_DATE_WED', 'USABLE_DATE_THU', 'USABLE_DATE_FRI', 'USABLE_DATE_SAT', 'USABLE_DATE_SUN', 'USABLE_DATE_HOLIDAY', 'USABLE_DATE_BEFORE_HOLIDAY']
+Weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+Item Profile: Predict 10 items per user
+Train data: (16350, 161)
+Test data: (347, 161)
+User list: (22873, 6)
+Purchases: (138209, 6)
+
+MAP Score: 0.0690155038028
+
+----------------------------
+
+FINAL MAP SCORE: 0.160572938007
