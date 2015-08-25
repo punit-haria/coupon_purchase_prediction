@@ -104,15 +104,21 @@ class Model(object):
         Takes the user and returns the purchased coupons and visited coupons along
         with their corresponding weights.
         """
-        # get user purchases
+        # get user purchases (note: not all users have made purchases)
         user_buys = self.purchases[self.purchases.USER_ID_hash == user.USER_ID_hash]
 
         # get corresponding coupons
         purchased_coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
-        #purchased_coupons = user_buys.merge(self.train, on='COUPON_ID_hash', how='left')
-        #purchased_coupons = purchased_coupons[self.train.columns]
 
-        purchased_weights = []
+        # generate weights for purchased coupons
+        bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
+        pw_with_index = self.train[self.train.COUPON_ID_hash.isin(bought_coupon_groups.keys())]
+        pw_with_index = pw_with_index[['COUPON_ID_hash']]
+        purchased_weights = {}
+        for key in bought_coupon_groups:
+            new_key = pw_with_index[pw_with_index.COUPON_ID_hash == key].index[0]
+            purchased_weights[new_key] = len(bought_coupon_groups[key])
+        purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
 
         return purchased_coupons, purchased_weights
 
@@ -121,13 +127,15 @@ class Model(object):
         """
         Recommends a ranked sequence of Coupons for a provided User.
         :param purchased_coupons: user's purchased coupons
-        :param purchased_weights: importance weights for each purchased coupon
+        :param purchased_weights: importance weights for each purchased coupon as a dictionary
         """
         # get similarity scores for each test coupon
         scores = self.item_profile.similarity(purchased_coupons.index, self.test.index)
         scores = scores.transpose() # now: (test coupons, user coupons)
-        # compute mean similarity score for each test coupon
-        scores["mean"] = scores.mean(axis=1)
+        # compute similarity score for each test coupon using purchased coupons and weights
+        if scores.shape[1] == 0:
+            return ""
+        scores["mean"] = scores.dot(purchased_weights)
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
