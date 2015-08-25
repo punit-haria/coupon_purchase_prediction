@@ -10,7 +10,7 @@ import multiprocessing as mp
 def run(output_filename):
     load = DataLoader()
     model = Model(load.coupons_train, load.coupons_test,
-                          load.user_list, load.details_train)
+                          load.user_list, load.details_train, load.visits)
     model.run()
     final_df = model.predict()
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
@@ -99,9 +99,9 @@ def parallel_validate(output_file):
 
 if __name__ == '__main__':
 
-    #model = run('submissions/submission.csv')
+    model = run('submissions/submission.csv')
 
-    parallel_validate('selection/model_config_9.txt')
+    #parallel_validate('selection/model_config_9.txt')
 
 
 
