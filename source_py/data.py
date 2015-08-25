@@ -15,6 +15,8 @@ class DataLoader(object):
 
         self.locations = pd.read_csv("raw_data/prefecture_locations.csv")
 
+        self.visits = pd.read_csv("raw_data/coupon_visit_train.csv")
+
         # ensure data is read correctly
         assert self.user_list.shape == (22873,6)
         assert self.coupons_train.shape == (19413,24)
@@ -25,6 +27,8 @@ class DataLoader(object):
         assert self.listing_area_test.shape == (2165,3)
 
         assert self.locations.shape == (47, 4)
+
+        assert self.visits.shape == (2833180, 8)
 
         # drop small_area_name from area listings because we can't map it to coordinates
         self.listing_area_train.drop("SMALL_AREA_NAME", axis=1, inplace=True)
@@ -38,6 +42,8 @@ class DataLoader(object):
                                                              how='left', on='PREF_NAME')
         self.locations_test = self.listing_area_test.merge(self.locations,
                                                              how='left', on='PREF_NAME')
+
+
 
         # convert variables to datetime format
         fmt = '%Y-%m-%d %H:%M:%S'

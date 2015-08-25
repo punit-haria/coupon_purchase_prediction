@@ -85,14 +85,12 @@ class Model(object):
         for index in self.users.index:
             # get user
             user = self.users.ix[index]
-            # get user purchases
-            user_buys = self.purchases[self.purchases.USER_ID_hash == user.USER_ID_hash]
-            # get corresponding coupons
-            coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
+            # get relevant coupons and corresponding weights
+            purchased_coupons, purchased_weights = self._coupon_filter(user)
             # get recommendations
-            coupons = self._recommend(coupons)
+            final_coupons = self._recommend(purchased_coupons, purchased_weights)
             # add to submissions
-            submission.append([user.USER_ID_hash, coupons])
+            submission.append([user.USER_ID_hash, final_coupons])
             e += 1
             if e % 1000 == 0:
                 print "At User: ", e
@@ -100,13 +98,33 @@ class Model(object):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _recommend(self, coupons):
+    def _coupon_filter(self, user):
+        """
+        :param user: row corresponding to user in user_list
+        Takes the user and returns the purchased coupons and visited coupons along
+        with their corresponding weights.
+        """
+        # get user purchases
+        user_buys = self.purchases[self.purchases.USER_ID_hash == user.USER_ID_hash]
+
+        # get corresponding coupons
+        purchased_coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
+        #purchased_coupons = user_buys.merge(self.train, on='COUPON_ID_hash', how='left')
+        #purchased_coupons = purchased_coupons[self.train.columns]
+
+        purchased_weights = []
+
+        return purchased_coupons, purchased_weights
+
+
+    def _recommend(self, purchased_coupons, purchased_weights):
         """
         Recommends a ranked sequence of Coupons for a provided User.
-        :param coupons: user's purchased coupons
+        :param purchased_coupons: user's purchased coupons
+        :param purchased_weights: importance weights for each purchased coupon
         """
         # get similarity scores for each test coupon
-        scores = self.item_profile.similarity(coupons.index, self.test.index)
+        scores = self.item_profile.similarity(purchased_coupons.index, self.test.index)
         scores = scores.transpose() # now: (test coupons, user coupons)
         # compute mean similarity score for each test coupon
         scores["mean"] = scores.mean(axis=1)

@@ -11,8 +11,9 @@ Validation:
 Questions:
 
 - is purchased list a subset of visited list?
+	No it isn't. This needs further investigation.
 - how does the distribution of #purchased compare with the distribution of #visited?
--
+	Visitations are larger as expected.
 
 TODO:
 
@@ -24,13 +25,13 @@ TODO:
 5. Calculate Coverage metric for model (Item space and User space coverage)
 6. Expand the MAP score metric in the code so that we can see which users were predicted correctly
 	and which ones were predicted wrong. This will be useful when comparing models.
-6. Optimize hyperparameters:
+7. Optimize hyperparameters:
 	numerical variable weights, 
 	weights for user coupon purchases by time, 
 	different similarity functions,
 	including visit/similar user parameters,
 	etc
-6. look at netflix prize solution
+8. look at netflix prize solution
 
 
 
