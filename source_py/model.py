@@ -99,7 +99,7 @@ class Model(object):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _coupon_filter(self, user, num_purchases_w=0.5, purchase_date_w=0.5):
+    def _coupon_filter(self, user, num_purchases_w=0.35, purchase_date_w=0.65):
         """
         :param user: row corresponding to user in user_list
         Takes the user and returns the purchased coupons and visited coupons along
@@ -113,40 +113,40 @@ class Model(object):
 
         # get the frequency of purchase for each coupon
         bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
-        pw_with_index = self.train[self.train.COUPON_ID_hash.isin(bought_coupon_groups.keys())]
-        pw_with_index = pw_with_index[['COUPON_ID_hash']]
         purchased_weights = {}
         for key in bought_coupon_groups:
-            new_key = pw_with_index[pw_with_index.COUPON_ID_hash == key].index[0]
+            new_key = purchased_coupons[purchased_coupons.COUPON_ID_hash == key].index[0]
             purchased_weights[new_key] = len(bought_coupon_groups[key])
         purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
         purchased_weights.columns = ["freq"]
-        if purchased_weights.shape[1] > 1:
-            purchased_weights["freq"] = Model._normalize(purchased_weights["freq"]) # scale to [0,1]
-        else:
-            purchased_weights.iloc[0] = 1.0
+        purchased_weights["freq"] = Model._normalize(purchased_weights["freq"]) # scale to [0,1]
 
         # get the most recent purchase date for each coupon
         pdates = user_buys[["COUPON_ID_hash", "NUM_DAYS"]].groupby(by='COUPON_ID_hash').max()
         pdates.columns = ["recent"]
-        if pdates.shape[1] > 1:
-            pdates["recent"] = Model._normalize(pdates["recent"]) # scale to [0,1]
-        else:
-            pdates.iloc[0] = 1.0
+        pdates["recent"] = Model._normalize(pdates["recent"]) # scale to [0,1]
         actual_index = []
         for coup in pdates.index:
-            actual_index.append(pw_with_index[pw_with_index.COUPON_ID_hash == coup].index[0])
-        pdates["new_index"] = np.array(actual_index)
-        pdates.set_index("new_index", inplace=True)
+            actual_index.append(purchased_coupons[purchased_coupons.COUPON_ID_hash == coup].index[0])
+        pdates.index = np.array(actual_index)
         pdates.sort_index(inplace=True)
+
+        if purchased_weights.isnull().any().any():
+            print bought_coupon_groups
+            print pdates
+            print purchased_weights
+            raise NotImplementedError
 
         # sanity check
         assert pdates.shape == purchased_weights.shape
+        assert pdates.index.equals(purchased_weights.index)
 
         # generate final purchase weights
-        purchased_weights["recent"] = np.array(pdates["freq"])
+        purchased_weights["recent"] = np.array(pdates["recent"])
+
         final_purchased_weights = (num_purchases_w * purchased_weights["freq"]) + \
                                   (purchase_date_w * purchased_weights["recent"])
+
 
         print final_purchased_weights
 
@@ -252,9 +252,17 @@ class Model(object):
     @staticmethod
     def _normalize(df):
         """
-        Makes resulting columns of resulting DataFrame have min:0 and max:1
+        Makes column of resulting DataFrame have min:0 and max:1
+        :param df: DataFrame
         """
-        return (df - df.min()) / (df.max() - df.min())
+        new_df = pd.DataFrame()
+        for col in df.columns:
+            diff = df[col].max() - df[col].min()
+            if diff == 0:
+                new_df[col] = df[col].apply(lambda x : 0.5)
+            else:
+                new_df[col] = (df[col] - df[col].min()) / diff
+        return new_df
 
 
     def get_configuration(self):

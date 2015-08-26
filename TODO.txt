@@ -15,6 +15,16 @@ Questions:
 - how does the distribution of #purchased compare with the distribution of #visited?
 	Visitations are larger as expected.
 
+
+1,2,414,5,2,52 --> [0,1]
+
+1,1,1,1,1,1 --> [0.5]
+
+0,0,0,0,0,0 --> [0.5]
+
+a --> 0.5
+
+
 TODO:
 
 4. Add code for weighing each similarity score on
