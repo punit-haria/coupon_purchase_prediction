@@ -111,6 +111,10 @@ class Model(object):
         # get corresponding purchased coupons
         purchased_coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
 
+        if purchased_coupons.empty: # return empty dataframe
+            return purchased_coupons, pd.DataFrame()
+
+
         # get the frequency of purchase for each coupon
         bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
         purchased_weights = {}
@@ -118,24 +122,19 @@ class Model(object):
             new_key = purchased_coupons[purchased_coupons.COUPON_ID_hash == key].index[0]
             purchased_weights[new_key] = len(bought_coupon_groups[key])
         purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
+
         purchased_weights.columns = ["freq"]
-        purchased_weights["freq"] = Model._normalize(purchased_weights["freq"]) # scale to [0,1]
+        purchased_weights = Model._normalize(purchased_weights) # scale to [0,1]
 
         # get the most recent purchase date for each coupon
         pdates = user_buys[["COUPON_ID_hash", "NUM_DAYS"]].groupby(by='COUPON_ID_hash').max()
         pdates.columns = ["recent"]
-        pdates["recent"] = Model._normalize(pdates["recent"]) # scale to [0,1]
+        pdates = Model._normalize(pdates) # scale to [0,1]
         actual_index = []
         for coup in pdates.index:
             actual_index.append(purchased_coupons[purchased_coupons.COUPON_ID_hash == coup].index[0])
         pdates.index = np.array(actual_index)
         pdates.sort_index(inplace=True)
-
-        if purchased_weights.isnull().any().any():
-            print bought_coupon_groups
-            print pdates
-            print purchased_weights
-            raise NotImplementedError
 
         # sanity check
         assert pdates.shape == purchased_weights.shape
@@ -146,9 +145,6 @@ class Model(object):
 
         final_purchased_weights = (num_purchases_w * purchased_weights["freq"]) + \
                                   (purchase_date_w * purchased_weights["recent"])
-
-
-        print final_purchased_weights
 
         return purchased_coupons, final_purchased_weights
 
