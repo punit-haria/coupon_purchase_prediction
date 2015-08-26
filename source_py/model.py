@@ -6,7 +6,7 @@ import numpy as np
 
 class Model(object):
 
-    def __init__(self, train, test, users, purchases, visits):
+    def __init__(self, train, test, users, purchases, visits=None):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
@@ -141,10 +141,8 @@ class Model(object):
         assert pdates.index.equals(purchased_weights.index)
 
         # generate final purchase weights
-        purchased_weights["recent"] = np.array(pdates["recent"])
-
         final_purchased_weights = (num_purchases_w * purchased_weights["freq"]) + \
-                                  (purchase_date_w * purchased_weights["recent"])
+                                  (purchase_date_w * pdates["recent"])
 
         return purchased_coupons, final_purchased_weights
 
@@ -160,7 +158,7 @@ class Model(object):
         scores = scores.transpose() # now: (test coupons, user coupons)
         # compute similarity score for each test coupon using purchased coupons and weights
         if scores.shape[1] == 0:
-            return "" # MAY NOT BE WHAT YOU WANT IN THE FUTURE!!
+            return "" # WARNING!
         scores["mean"] = scores.dot(purchased_weights)
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)

@@ -19,8 +19,8 @@ def run(output_filename):
 
 
 def randomize():
-    start_offset = randint(0,50)
-    training_period = randint(200,354 - start_offset)
+    start_offset = randint(0,70)
+    training_period = randint(250,354 - start_offset)
     day_zero = np.datetime64('2011-06-27')
     start = str(day_zero + start_offset)
     validation_period = 7
