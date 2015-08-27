@@ -42,14 +42,14 @@ def validate(start, training_period, validation_period, output):
     cv = Validator(start, training_period, validation_period, load)
 
     predictions = cv.run()
-    cv.score = cv.mapk(10, cv.actual, predictions)
+    cv.score, cv.scores = cv.mapk(10, cv.actual, predictions)
 
     print "MAP Score: ", cv.score
 
     config += cv.model.get_configuration()
     config += "\n\nMAP Score: " + str(cv.score)
 
-    output.put([cv.score, config])
+    output.put([cv.score, cv.scores, config])
 
 
 def parallel_validate(output_file):
@@ -82,10 +82,12 @@ def parallel_validate(output_file):
     res = [output.get() for p in processes]
 
     mapscores = []
+    scores = []
     config = ""
     for tup in res:
         mapscores.append(tup[0])
-        config += tup[1] + "\n\n----------------------------\n\n"
+        scores.append(tup[1])
+        config += tup[2] + "\n\n----------------------------\n\n"
 
     config += "FINAL MAP SCORE: " + str(np.array(mapscores).mean())
 
@@ -94,14 +96,18 @@ def parallel_validate(output_file):
     with open(output_file,'w') as f:
         f.write(config)
 
+    return scores
+
 
 
 
 if __name__ == '__main__':
 
-    model = run('submissions/submission.csv')
+    #model = run('submissions/submission.csv')
 
-    #parallel_validate('selection/model_config_9.txt')
+    scores = parallel_validate('selection/model_config_9.txt')
+
+    
 
 
 
