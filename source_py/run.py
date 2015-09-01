@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     scores = parallel_validate('selection/model_config_9.txt')
 
-    
+
 
 
 

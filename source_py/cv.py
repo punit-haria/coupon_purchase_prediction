@@ -110,8 +110,7 @@ class Validator(object):
             a = actual.ix[i].PURCHASED_COUPONS
             p = predicted.ix[j].PURCHASED_COUPONS
             scores.append(self.apk(k, a, p))
-        final_scores = np.array(scores)
-        return final_scores.mean(), final_scores
+        return np.array(scores).mean(), scores
 
 
     @staticmethod
