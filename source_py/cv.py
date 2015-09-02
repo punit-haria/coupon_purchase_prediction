@@ -106,13 +106,15 @@ class Validator(object):
         """
         print "Computing MAP score..."
         scores = []
+        users = []
         for i, j in zip(actual.index, predicted.index):
             assert actual.ix[i].USER_ID_hash == predicted.ix[i].USER_ID_hash
 
             a = actual.ix[i].PURCHASED_COUPONS
             p = predicted.ix[j].PURCHASED_COUPONS
             scores.append(self.apk(k, a, p))
-        return np.array(scores).mean(), scores
+            users.append(actual.ix[i].USER_ID_hash)
+        return np.array(scores).mean(), pd.DataFrame([users,scores]).transpose()
 
 
     @staticmethod

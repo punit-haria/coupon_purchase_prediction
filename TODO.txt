@@ -18,6 +18,8 @@ Questions:
 
 TODO:
 
+3. Add code to take the Average Precisions of all Users and store them
+	- later we can compare AP of users across models
 4. Add code for weighing each similarity score on
 	a) user coupons
 	b) user visited coupons

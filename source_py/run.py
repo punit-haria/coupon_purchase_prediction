@@ -38,7 +38,7 @@ def randomize():
     return start, training_period, validation_period
 
 
-def validate(start, training_period, validation_period, output):
+def validate(start, training_period, validation_period, output=None):
     load = DataLoader()
 
     config = "Split:\n"
@@ -59,7 +59,10 @@ def validate(start, training_period, validation_period, output):
     config += cv.model.get_configuration()
     config += "\n\nMAP Score: " + str(cv.score)
 
-    output.put([cv.score, config])
+    if output:
+        output.put([cv.score, config])
+    else:
+        return config, scores
 
 
 def parallel_validate(output_file):
@@ -105,22 +108,27 @@ def parallel_validate(output_file):
         f.write(config)
 
 
-def temp():
-    load = DataLoader()
+def seq_validate(model_name):
     start, training_period, validation_period = systematic(1)
-    cv = Validator(start, training_period, validation_period, load)
-    predictions = cv.run()
-    return cv.mapk(10, cv.actual, predictions)
+    config, scores = validate(start, training_period, validation_period)
 
+    print config
+    with open('selection/'+model_name+'.txt','w') as f:
+        f.write(config)
+
+    scores.columns = ["users", model_name]
+    scores.to_csv('scores/'+model_name+'.txt', index=False)
 
 
 if __name__ == '__main__':
 
-    #model = run('submissions/submission.csv')
+    model = run('submissions/submission.csv')
 
-    parallel_validate('selection/model_config_12.txt')
+    #parallel_validate('selection/model_config_13.txt')
 
-    #mean_score, scores = temp()
+    #seq_validate('model_17')
+
+
 
 
 

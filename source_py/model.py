@@ -99,7 +99,7 @@ class Model(object):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _coupon_filter(self, user, num_purchases_w=0.35, purchase_date_w=0.65):
+    def _coupon_filter(self, user, num_purchases_w=0.15, purchase_date_w=0.85):
         """
         :param user: row corresponding to user in user_list
         Takes the user and returns the purchased coupons and visited coupons along
