@@ -18,6 +18,16 @@ def run(output_filename):
     return model
 
 
+def systematic(n):
+    assert n > 0
+
+    start = str(np.datetime64('2011-06-27'))
+    training_period = 362 - (n * 7)
+    validation_period = 7
+
+    return start, training_period, validation_period
+
+
 def randomize():
     start_offset = randint(0,70)
     training_period = randint(250,354 - start_offset)
@@ -42,14 +52,14 @@ def validate(start, training_period, validation_period, output):
     cv = Validator(start, training_period, validation_period, load)
 
     predictions = cv.run()
-    cv.score, cv.scores = cv.mapk(10, cv.actual, predictions)
+    cv.score, scores = cv.mapk(10, cv.actual, predictions)
 
     print "MAP Score: ", cv.score
 
     config += cv.model.get_configuration()
     config += "\n\nMAP Score: " + str(cv.score)
 
-    output.put([cv.score, cv.scores, config])
+    output.put([cv.score, config])
 
 
 def parallel_validate(output_file):
@@ -58,16 +68,16 @@ def parallel_validate(output_file):
     output = mp.Queue()
 
     processes = []
-    start, training_period, validation_period = randomize()
+    start, training_period, validation_period = systematic(4)
     processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
-    start, training_period, validation_period = randomize()
+    start, training_period, validation_period = systematic(3)
     processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
-    start, training_period, validation_period = randomize()
+    start, training_period, validation_period = systematic(2)
     processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
-    start, training_period, validation_period = randomize()
+    start, training_period, validation_period = systematic(1)
     processes.append(mp.Process(target=validate, args=(
                                       start, training_period, validation_period,output)))
 
@@ -81,31 +91,34 @@ def parallel_validate(output_file):
 
     res = [output.get() for p in processes]
 
-    mapscores = []
     scores = []
     config = ""
     for tup in res:
-        mapscores.append(tup[0])
-        scores.append(tup[1])
-        config += tup[2] + "\n\n----------------------------\n\n"
+        scores.append(tup[0])
+        config += tup[1] + "\n\n----------------------------\n\n"
 
-    config += "FINAL MAP SCORE: " + str(np.array(mapscores).mean())
+    config += "FINAL MAP SCORE: " + str(np.array(scores).mean())
 
     print config
 
     with open(output_file,'w') as f:
         f.write(config)
 
-    return scores
 
-
-
+def temp():
+    load = DataLoader()
+    start, training_period, validation_period = randomize()
+    cv = Validator(start, training_period, validation_period, load)
+    predictions = cv.run()
+    return cv.mapk(10, cv.actual, predictions)
 
 if __name__ == '__main__':
 
     #model = run('submissions/submission.csv')
 
-    scores = parallel_validate('selection/model_config_9.txt')
+    parallel_validate('selection/model_config_12.txt')
+
+    #mean_score, scores = temp()
 
 
 

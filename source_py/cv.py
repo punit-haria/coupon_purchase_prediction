@@ -40,6 +40,7 @@ class Validator(object):
         # only allow transaction history of coupons in the training set within training period
         self.purchases = trans[trans.COUPON_ID_hash.isin(self.train.COUPON_ID_hash)].copy(deep=True)
         self.purchases.drop(self.purchases[self.purchases.I_DATE >= self.end].index, inplace=True)
+        self.purchases.drop(self.purchases[self.purchases.I_DATE < self.start].index, inplace=True)
 
         # actual purchases made during validation period
         tp = trans.copy(deep=True)
@@ -83,7 +84,8 @@ class Validator(object):
         tp = self.test_purchases
         for index in self.users.index:
             user_id = self.users.ix[index].USER_ID_hash
-            user_purchases = tp[tp.USER_ID_hash == user_id].sort("ITEM_COUNT", ascending=False, axis=0)
+            user_purchases = tp[tp.USER_ID_hash == user_id].sort(["I_DATE", "ITEM_COUNT"],
+                                                                 ascending=[True, False], axis=0)
             coups = user_purchases.COUPON_ID_hash.tolist()
             ids = ""
             for value in coups:
