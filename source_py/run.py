@@ -122,11 +122,11 @@ def seq_validate(model_name):
 
 if __name__ == '__main__':
 
-    model = run('submissions/submission.csv')
+    #model = run('submissions/submission.csv')
 
     #parallel_validate('selection/model_config_13.txt')
 
-    #seq_validate('model_17')
+    seq_validate('model_17')
 
 
 

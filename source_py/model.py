@@ -6,21 +6,19 @@ import numpy as np
 
 class Model(object):
 
-    def __init__(self, train, test, users, purchases, visits=None):
+    def __init__(self, train, test, users, purchases, visits):
         """
         :param train: pandas.DataFrame of training coupon data
         :param test: pandas.DataFrame of test coupon data
         :param users: pandas.DataFrame of user data
         :param purchases: pandas.DataFrame of All user purchases
+        :param visits: pandas.DataFrame of All user visits
         """
-        assert isinstance(train, pd.DataFrame)
-        assert isinstance(test, pd.DataFrame)
-        assert isinstance(users, pd.DataFrame)
-        assert isinstance(purchases, pd.DataFrame)
-
         self.users = users
         self.purchases = purchases
-        self.visits = visits
+
+        self.visits = visits[visits["PURCHASE_FLG"] == 1].copy(deep=True)
+        self.visits = self.visits[self.visits.VIEW_COUPON_ID_hash.isin(train.COUPON_ID_hash)]
 
         self.fields = ["COUPON_ID_hash",
                        "CAPSULE_TEXT", "GENRE_NAME",
@@ -87,9 +85,9 @@ class Model(object):
             # get user
             user = self.users.ix[index]
             # get relevant coupons and corresponding weights
-            purchased_coupons, purchased_weights = self._coupon_filter(user)
+            purchased_coupons, purchased_weights, visited_coupons, visited_weights = self._coupon_filter(user)
             # get recommendations
-            final_coupons = self._recommend(purchased_coupons, purchased_weights)
+            final_coupons = self._recommend(purchased_coupons, purchased_weights, visited_coupons, visited_weights)
             # add to submissions
             submission.append([user.USER_ID_hash, final_coupons])
             e += 1
@@ -107,12 +105,16 @@ class Model(object):
         """
         # get user purchases (note: not all users have made purchases)
         user_buys = self.purchases[self.purchases.USER_ID_hash == user.USER_ID_hash]
-
         # get corresponding purchased coupons
         purchased_coupons = self.train[self.train.COUPON_ID_hash.isin(user_buys.COUPON_ID_hash)]
 
-        if purchased_coupons.empty: # return empty dataframe
-            return purchased_coupons, pd.DataFrame()
+        # get user visits (not including purchases)
+        user_visits = self.visits[self.visits.USER_ID_hash == user.USER_ID_hash]
+        # get corresponding visited coupons
+        visited_coupons = self.train[self.train.COUPON_ID_hash.isin(user_visits.VIEW_COUPON_ID_hash)]
+
+        if purchased_coupons.empty and visited_coupons.empty: # return empty dataframe # CAUTION!!!
+            return purchased_coupons, pd.DataFrame(), visited_coupons, pd.DataFrame()
 
         # get the frequency of purchase for each coupon
         bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
@@ -143,29 +145,51 @@ class Model(object):
         final_purchased_weights = (num_purchases_w * purchased_weights["freq"]) + \
                                   (purchase_date_w * pdates["recent"])
 
-        return purchased_coupons, final_purchased_weights
+        # get the most recent visitation date for each coupon
+        vdates = user_visits[["VIEW_COUPON_ID_hash", "NUM_DAYS"]].groupby(by='VIEW_COUPON_ID_hash').max()
+        vdates.columns = ["recent"]
+        vdates = Model._normalize(vdates) # scale to [0,1]
+        actual_vindex = []
+        for coup in vdates.index:
+            actual_vindex.append(visited_coupons[visited_coupons.COUPON_ID_hash == coup].index[0])
+        vdates.index = np.array(actual_vindex)
+        vdates.sort_index(inplace=True)
+        final_visited_weights = vdates.recent
+
+        return purchased_coupons, final_purchased_weights, visited_coupons, final_visited_weights
 
 
-    def _recommend(self, purchased_coupons, purchased_weights):
+    def _recommend(self, purchased_coupons, purchased_weights, visited_coupons, visited_weights,
+                   purchased_w = 0.7, visited_w = 0.3):
         """
         Recommends a ranked sequence of Coupons for a provided User.
         :param purchased_coupons: user's purchased coupons
         :param purchased_weights: importance weights for each purchased coupon as a dictionary
         """
+        pscores = self.item_profile.similarity(purchased_coupons.index, self.test.index)
+        pscores = pscores.transpose() # now: (test coupons, user coupons)
+        if pscores.shape[1] == 0:
+            pscores["pmean"] = 0
+        else:
+            # compute similarity score for each test coupon using purchased coupons and weights
+            pscores["pmean"] = pscores.dot(purchased_weights)
+
         # get similarity scores for each test coupon
-        scores = self.item_profile.similarity(purchased_coupons.index, self.test.index)
-        scores = scores.transpose() # now: (test coupons, user coupons)
-        # compute similarity score for each test coupon using purchased coupons and weights
-        if scores.shape[1] == 0:
-            return "" # WARNING!
-        scores["mean"] = scores.dot(purchased_weights)
+        vscores = self.item_profile.similarity(visited_coupons.index, self.test.index)
+        vscores = vscores.transpose() # now: (test coupons, user coupons)
+        if vscores.shape[1] == 0:
+            vscores["vmean"] = 0
+        else:
+            # compute similarity score for each test coupon using purchased coupons and weights
+            vscores["vmean"] = vscores.dot(visited_weights)
+
+        # combine scores
+        scores = pd.concat([pscores, vscores], axis=1)
+        scores["mean"] = (purchased_w * pscores["pmean"]) + (visited_w * vscores["vmean"])
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
-        top = 10
-        if top < 1:
-            return ""
-        top_indices = scores.head(n=top).index
+        top_indices = scores.head(n=10).index
         # get top coupon IDs
         coups = self.test.ix[top_indices].COUPON_ID_hash.tolist()
 

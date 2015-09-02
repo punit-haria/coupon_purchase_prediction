@@ -52,6 +52,9 @@ class Validator(object):
         # check that all test purchases come from test coupon data
         assert tp[tp.COUPON_ID_hash.isin(self.test.COUPON_ID_hash)].shape == tp.shape
 
+        # user visits
+        self.visits = loader.visits
+
         # users
         self.users = loader.user_list
 
@@ -69,7 +72,7 @@ class Validator(object):
         """
         print "Initializing model..."
         self.model = Model(self.train, self.test,
-                                       self.users, self.purchases)
+                                       self.users, self.purchases, self.visits)
         print "Training model..."
         self.model.run()
         print "Making predictions..."

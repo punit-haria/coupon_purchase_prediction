@@ -15,7 +15,7 @@ class DataLoader(object):
 
         self.locations = pd.read_csv("raw_data/prefecture_locations.csv")
 
-        self.visits = pd.DataFrame()#pd.read_csv("raw_data/coupon_visit_train.csv")
+        self.visits = pd.read_csv("raw_data/coupon_visit_train.csv")
 
         # ensure data is read correctly
         assert self.user_list.shape == (22873,6)
@@ -28,7 +28,7 @@ class DataLoader(object):
 
         assert self.locations.shape == (47, 4)
 
-        #assert self.visits.shape == (2833180, 8)
+        assert self.visits.shape == (2833180, 8)
 
         # drop small_area_name from area listings because we can't map it to coordinates
         self.listing_area_train.drop("SMALL_AREA_NAME", axis=1, inplace=True)
@@ -47,12 +47,12 @@ class DataLoader(object):
         fmt = '%Y-%m-%d %H:%M:%S'
         self.coupons_train.DISPFROM = pd.to_datetime(self.coupons_train.DISPFROM, format=fmt)
         self.details_train.I_DATE = pd.to_datetime(self.details_train.I_DATE, format=fmt)
-        #self.visits.I_DATE = pd.to_datetime(self.visits.I_DATE, format=fmt)
+        self.visits.I_DATE = pd.to_datetime(self.visits.I_DATE, format=fmt)
 
         # number of days since beginning
         self.details_train["NUM_DAYS"] \
             = ((self.details_train.I_DATE - self.details_train.I_DATE.min()) / np.timedelta64(1, 'D')).astype(int)
-        #self.visits["NUM_DAYS"] \
-        #    = ((self.visits.I_DATE - self.visits.I_DATE.min()) / np.timedelta64(1, 'D')).astype(int)
+        self.visits["NUM_DAYS"] \
+            = ((self.visits.I_DATE - self.visits.I_DATE.min()) / np.timedelta64(1, 'D')).astype(int)
 
 
