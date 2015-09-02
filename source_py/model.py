@@ -114,7 +114,6 @@ class Model(object):
         if purchased_coupons.empty: # return empty dataframe
             return purchased_coupons, pd.DataFrame()
 
-
         # get the frequency of purchase for each coupon
         bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
         purchased_weights = {}

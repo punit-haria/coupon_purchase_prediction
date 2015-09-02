@@ -107,10 +107,12 @@ def parallel_validate(output_file):
 
 def temp():
     load = DataLoader()
-    start, training_period, validation_period = randomize()
+    start, training_period, validation_period = systematic(1)
     cv = Validator(start, training_period, validation_period, load)
     predictions = cv.run()
     return cv.mapk(10, cv.actual, predictions)
+
+
 
 if __name__ == '__main__':
 
