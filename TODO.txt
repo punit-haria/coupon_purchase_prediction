@@ -18,23 +18,16 @@ Questions:
 
 TODO:
 
-3. Add code to take the Average Precisions of all Users and store them
-	- later we can compare AP of users across models
-4. Add code for weighing each similarity score on
-	a) user coupons
-	b) user visited coupons
-	c) recent coupons vs. old coupons (purchased date?, release date?, expire date?)
-	d) coupons derived from similar users
+2. look at netflix prize solution: http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/
+3. Create separate Models in code for:
+	- purchased coupon model
+	- visited coupon model
+	- similar users' coupons model
+	- user behaviour model (activity level of user, etc.)
+	- coupon behaviour model (popularity of coupon, etc.)
+	Then, use model averaging along with compare_MAP function in R to build an ensemble.
 5. Calculate Coverage metric for model (Item space and User space coverage)
-6. Expand the MAP score metric in the code so that we can see which users were predicted correctly
-	and which ones were predicted wrong. This will be useful when comparing models.
-7. Optimize hyperparameters:
-	numerical variable weights, 
-	weights for user coupon purchases by time, 
-	different similarity functions,
-	including visit/similar user parameters,
-	etc
-8. look at netflix prize solution
+
 
 
 

@@ -17,8 +17,8 @@ class Model(object):
         self.users = users
         self.purchases = purchases
 
-        self.visits = visits[visits["PURCHASE_FLG"] == 1].copy(deep=True)
-        self.visits = self.visits[self.visits.VIEW_COUPON_ID_hash.isin(train.COUPON_ID_hash)]
+        self.visits = visits[visits.VIEW_COUPON_ID_hash.isin(train.COUPON_ID_hash)].copy(deep=True)
+        self.visits = self.visits[self.visits["PURCHASE_FLG"] == 1]
 
         self.fields = ["COUPON_ID_hash",
                        "CAPSULE_TEXT", "GENRE_NAME",
@@ -64,8 +64,8 @@ class Model(object):
         # parameters
         self.num_purchases_w = 0.15
         self.purchase_date_w = 0.85
-        self.purchased_w = 0.7
-        self.visited_w = 0.3
+        self.purchased_w = 0.5
+        self.visited_w = 0.5
 
 
 

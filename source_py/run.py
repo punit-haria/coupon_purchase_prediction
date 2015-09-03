@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
     #parallel_validate('selection/model_config_13.txt')
 
-    seq_validate('model_17')
+    seq_validate('model_18')
 
 
 
