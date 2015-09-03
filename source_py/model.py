@@ -61,6 +61,13 @@ class Model(object):
         # construct ItemProfile using finalized training and test sets
         self.item_profile = ItemProfile(self.train, self.test)
 
+        # parameters
+        self.num_purchases_w = 0.15
+        self.purchase_date_w = 0.85
+        self.purchased_w = 0.7
+        self.visited_w = 0.3
+
+
 
     @staticmethod
     def run():
@@ -97,7 +104,7 @@ class Model(object):
         return pd.DataFrame(submission, columns=["USER_ID_hash", "PURCHASED_COUPONS"])
 
 
-    def _coupon_filter(self, user, num_purchases_w=0.15, purchase_date_w=0.85):
+    def _coupon_filter(self, user):
         """
         :param user: row corresponding to user in user_list
         Takes the user and returns the purchased coupons and visited coupons along
@@ -113,54 +120,54 @@ class Model(object):
         # get corresponding visited coupons
         visited_coupons = self.train[self.train.COUPON_ID_hash.isin(user_visits.VIEW_COUPON_ID_hash)]
 
-        if purchased_coupons.empty and visited_coupons.empty: # return empty dataframe # CAUTION!!!
-            return purchased_coupons, pd.DataFrame(), visited_coupons, pd.DataFrame()
+        final_purchased_weights = None
+        if not purchased_coupons.empty:
+            # get the frequency of purchase for each coupon
+            bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
+            purchased_weights = {}
+            for key in bought_coupon_groups:
+                new_key = purchased_coupons[purchased_coupons.COUPON_ID_hash == key].index[0]
+                purchased_weights[new_key] = len(bought_coupon_groups[key])
+            purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
 
-        # get the frequency of purchase for each coupon
-        bought_coupon_groups = user_buys.groupby(by='COUPON_ID_hash').groups
-        purchased_weights = {}
-        for key in bought_coupon_groups:
-            new_key = purchased_coupons[purchased_coupons.COUPON_ID_hash == key].index[0]
-            purchased_weights[new_key] = len(bought_coupon_groups[key])
-        purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
+            purchased_weights.columns = ["freq"]
+            purchased_weights = Model._normalize(purchased_weights) # scale to [0,1]
 
-        purchased_weights.columns = ["freq"]
-        purchased_weights = Model._normalize(purchased_weights) # scale to [0,1]
+            # get the most recent purchase date for each coupon
+            pdates = user_buys[["COUPON_ID_hash", "NUM_DAYS"]].groupby(by='COUPON_ID_hash').max()
+            pdates.columns = ["recent"]
+            pdates = Model._normalize(pdates) # scale to [0,1]
+            actual_index = []
+            for coup in pdates.index:
+                actual_index.append(purchased_coupons[purchased_coupons.COUPON_ID_hash == coup].index[0])
+            pdates.index = np.array(actual_index)
+            pdates.sort_index(inplace=True)
 
-        # get the most recent purchase date for each coupon
-        pdates = user_buys[["COUPON_ID_hash", "NUM_DAYS"]].groupby(by='COUPON_ID_hash').max()
-        pdates.columns = ["recent"]
-        pdates = Model._normalize(pdates) # scale to [0,1]
-        actual_index = []
-        for coup in pdates.index:
-            actual_index.append(purchased_coupons[purchased_coupons.COUPON_ID_hash == coup].index[0])
-        pdates.index = np.array(actual_index)
-        pdates.sort_index(inplace=True)
+            # sanity check
+            assert pdates.shape == purchased_weights.shape
+            assert pdates.index.equals(purchased_weights.index)
 
-        # sanity check
-        assert pdates.shape == purchased_weights.shape
-        assert pdates.index.equals(purchased_weights.index)
+            # generate final purchase weights
+            final_purchased_weights = (self.num_purchases_w * purchased_weights["freq"]) + \
+                                  (self.purchase_date_w * pdates["recent"])
 
-        # generate final purchase weights
-        final_purchased_weights = (num_purchases_w * purchased_weights["freq"]) + \
-                                  (purchase_date_w * pdates["recent"])
-
-        # get the most recent visitation date for each coupon
-        vdates = user_visits[["VIEW_COUPON_ID_hash", "NUM_DAYS"]].groupby(by='VIEW_COUPON_ID_hash').max()
-        vdates.columns = ["recent"]
-        vdates = Model._normalize(vdates) # scale to [0,1]
-        actual_vindex = []
-        for coup in vdates.index:
-            actual_vindex.append(visited_coupons[visited_coupons.COUPON_ID_hash == coup].index[0])
-        vdates.index = np.array(actual_vindex)
-        vdates.sort_index(inplace=True)
-        final_visited_weights = vdates.recent
+        final_visited_weights = None
+        if not visited_coupons.empty:
+            # get the most recent visitation date for each coupon
+            vdates = user_visits[["VIEW_COUPON_ID_hash", "NUM_DAYS"]].groupby(by='VIEW_COUPON_ID_hash').max()
+            vdates.columns = ["recent"]
+            vdates = Model._normalize(vdates) # scale to [0,1]
+            actual_vindex = []
+            for coup in vdates.index:
+                actual_vindex.append(visited_coupons[visited_coupons.COUPON_ID_hash == coup].index[0])
+            vdates.index = np.array(actual_vindex)
+            vdates.sort_index(inplace=True)
+            final_visited_weights = vdates.recent
 
         return purchased_coupons, final_purchased_weights, visited_coupons, final_visited_weights
 
 
-    def _recommend(self, purchased_coupons, purchased_weights, visited_coupons, visited_weights,
-                   purchased_w = 0.7, visited_w = 0.3):
+    def _recommend(self, purchased_coupons, purchased_weights, visited_coupons, visited_weights):
         """
         Recommends a ranked sequence of Coupons for a provided User.
         :param purchased_coupons: user's purchased coupons
@@ -185,7 +192,7 @@ class Model(object):
 
         # combine scores
         scores = pd.concat([pscores, vscores], axis=1)
-        scores["mean"] = (purchased_w * pscores["pmean"]) + (visited_w * vscores["vmean"])
+        scores["mean"] = (self.purchased_w * pscores["pmean"]) + (self.visited_w * vscores["vmean"])
         # sort by descending order of mean score
         scores.sort(columns="mean", ascending=False, inplace=True)
         # get top test coupon indices
@@ -294,6 +301,12 @@ class Model(object):
         result += "\nTest data: "+str(self.test.shape)
         result += "\nUser list: "+str(self.users.shape)
         result += "\nPurchases: "+str(self.purchases.shape)
+        result += "\n\nParameters:"
+        result += "\nnum_purchases_w: "+str(self.num_purchases_w)
+        result += "\npurchase_date_w: "+str(self.purchase_date_w)
+        result += "\npurchase_w: "+str(self.purchased_w)
+        result += "\nvisited_w: "+str(self.visited_w)
+
         return result
 
 
