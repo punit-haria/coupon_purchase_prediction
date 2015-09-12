@@ -8,6 +8,9 @@ Validation:
 
 - check that submissions do not have duplicate entries for a given user
 
+- Maybe visualize items using t-SNE?
+	http://blog.applied.ai/visualising-high-dimensional-data/
+
 Questions:
 
 - is purchased list a subset of visited list?
@@ -18,7 +21,7 @@ Questions:
 
 TODO:
 
-1. 	
+1.
 	Take feature vectors of user-item combinations. Response classes: purchased, visited, not viewed, visited but not purchased, etc. Use a powerful classifier with regularization.
  
 	This will result in ~100,000,000 records. Probably enough to deal with the high dimensionality.
@@ -28,6 +31,7 @@ TODO:
 	Transforming collaborative filtering into supervised learning – may need UBC library to get access.
 
 2. look at netflix prize solution: http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/
+
 3. Create separate Models in code for:
 	- purchased coupon model
 	- visited coupon model
@@ -35,7 +39,8 @@ TODO:
 	- user behaviour model (activity level of user, etc.)
 	- coupon behaviour model (popularity of coupon, etc.)
 	Then, use model averaging along with compare_MAP function in R to build an ensemble.
-5. Calculate Coverage metric for model (Item space and User space coverage)
+
+4. Calculate Coverage metric for model (Item space and User space coverage)
 
 
 
