@@ -18,6 +18,15 @@ Questions:
 
 TODO:
 
+1. 	
+	Take feature vectors of user-item combinations. Response classes: purchased, visited, not viewed, visited but not purchased, etc. Use a powerful classifier with regularization.
+ 
+	This will result in ~100,000,000 records. Probably enough to deal with the high dimensionality.
+ 
+	http://ac.els-cdn.com.ezproxy.library.ubc.ca/S095741741500038X/1-s2.0-S095741741500038X-main.pdf?_tid=56f59ed4-58c4-11e5-beb1-00000aab0f02&acdnat=1442003780_d5090dd1f92c125b82923d018685d31c
+ 
+	Transforming collaborative filtering into supervised learning – may need UBC library to get access.
+
 2. look at netflix prize solution: http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/
 3. Create separate Models in code for:
 	- purchased coupon model
