@@ -1,4 +1,3 @@
-from source_py.item import ItemProfile
 from source_py.timer import Timer
 
 import pandas as pd

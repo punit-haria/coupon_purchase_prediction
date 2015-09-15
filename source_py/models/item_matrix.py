@@ -9,6 +9,9 @@ def test():
     return ItemMatrix(load.coupons_train, load.coupons_test)
 
 class ItemMatrix(object):
+    """
+    Constructs an Item-Item similarity matrix between training and test coupons.
+    """
 
     def __init__(self, train_coupons, test_coupons):
         """
