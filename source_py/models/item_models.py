@@ -17,7 +17,7 @@ class Model(object):
     @staticmethod
     def _normalize(df):
         """
-        Makes column of resulting DataFrame have min:0 and max:1
+        Makes each column within range [0,1]
         :param df: DataFrame
         """
         new_df = pd.DataFrame()
@@ -126,12 +126,12 @@ class PurchaseModel(Model):
             purchased_weights = pd.DataFrame.from_dict(purchased_weights, orient='index').sort_index()
 
             purchased_weights.columns = ["freq"]
-            purchased_weights = Model._normalize(purchased_weights) # scale to [0,1]
+            purchased_weights = Model._normalize(purchased_weights) # make range [0,1]
 
             # get the most recent purchase date for each coupon
             pdates = user_buys[["COUPON_ID_hash", "NUM_DAYS"]].groupby(by='COUPON_ID_hash').max()
             pdates.columns = ["recent"]
-            pdates = Model._normalize(pdates) # scale to [0,1]
+            pdates = Model._normalize(pdates) # make range [0,1]
             actual_index = []
             for coup in pdates.index:
                 actual_index.append(purchased_coupons[purchased_coupons.COUPON_ID_hash == coup].index[0])

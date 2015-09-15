@@ -2,6 +2,9 @@ from source_py.data import DataLoader
 from source_py.model import Model
 from source_py.cv import Validator
 
+from source_py.models.item_models import PurchaseModel
+from source_py.models.item_matrix import ItemMatrix
+
 import numpy as np
 from random import randint
 import multiprocessing as mp
@@ -9,13 +12,17 @@ import multiprocessing as mp
 
 def run(output_filename):
     load = DataLoader()
-    model = Model(load.coupons_train, load.coupons_test,
-                          load.user_list, load.details_train, load.visits)
+
+    im = ItemMatrix(load.coupons_train, load.coupons_test)
+    model = PurchaseModel(im, load.coupons_train, load.coupons_test,
+                          load.user_list, load.details_train)
+
     model.run()
     final_df = model.predict()
+
     final_df.to_csv(output_filename, sep=",", index=False, header=True)
 
-    return model
+    return model, final_df
 
 
 def systematic(n):
@@ -122,11 +129,11 @@ def seq_validate(model_name):
 
 if __name__ == '__main__':
 
-    #model = run('submissions/submission.csv')
+    model, results = run('temp/results.csv')
 
     #parallel_validate('selection/model_config_13.txt')
 
-    seq_validate('model_18')
+    #seq_validate('model_18')
 
 
 
