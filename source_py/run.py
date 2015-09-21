@@ -129,7 +129,9 @@ def seq_validate(model_name):
 
 if __name__ == '__main__':
 
-    model, results = run('temp/results.csv')
+    print "hello"
+
+    #model, results = run('temp/results.csv')
 
     #parallel_validate('selection/model_config_13.txt')
 
