@@ -1,6 +1,7 @@
 __author__ = 'punit'
 
 import pandas as pd
+import os.path
 import math
 import sys
 
@@ -15,7 +16,7 @@ def load():
 
 class LibfmLoader(object):
 
-    def __init__(self, users, coupons_train, coupons_test, purchases):
+    def __init__(self, users, coupons_train, coupons_test, purchases, reset_index=False):
         self.users = users
         self.coupons_train = coupons_train
         self.coupons_test = coupons_test
@@ -34,7 +35,23 @@ class LibfmLoader(object):
         self.result = pd.DataFrame()
         self.result_test = pd.DataFrame()
 
-        print "constructing user,item index..."
+        print "getting user,item index..."
+        self.uindex_fname = "datalibfm/user_dict.txt"
+        self.iindex_fname = "datalibfm/item_dict.txt"
+        if reset_index:
+            self.uindex, self.iindex = self._generate_index()
+        elif os.path.isfile(self.uindex_fname) and os.path.isfile(self.uindex_fname):
+            self.uindex = pd.read_csv(self.uindex_fname, header=None)
+            self.iindex = pd.read_csv(self.iindex_fname, header=None)
+        else:
+            self.uindex, self.iindex = self._generate_index()
+
+        self.uindex.columns = ["id", "val"]
+        self.iindex.columns = ["id", "val"]
+
+
+    def _generate_index(self):
+        print "generating user,item index..."
         user_index = {}
         item_index = {}
         user_list = self.users.USER_ID_hash.tolist()
@@ -53,10 +70,16 @@ class LibfmLoader(object):
             e += 1
             if e % 1000 == 0:
                 print "At item: ", e
-        self.uindex = pd.DataFrame.from_dict(user_index, orient='index')
-        self.uindex.columns = ["id", "val"]
-        self.iindex = pd.DataFrame.from_dict(item_index, orient='index')
-        self.iindex.columns = ["id", "val"]
+        uindex = pd.DataFrame.from_dict(user_index, orient='index')
+        uindex.reset_index(level=0, inplace=True)
+        iindex = pd.DataFrame.from_dict(item_index, orient='index')
+        iindex.reset_index(level=0, inplace=True)
+
+        print "saving index..."
+        uindex.to_csv(self.uindex_fname, header=False, index=False)
+        iindex.to_csv(self.iindex_fname, header=False, index=False)
+
+        return uindex, iindex
 
 
     def convert(self):
@@ -106,8 +129,8 @@ class LibfmLoader(object):
         item_df = self.iindex[self.iindex.id.isin(self.purchases.COUPON_ID_hash)]
 
         print "adding negative user,item indicators..."
-        print "Number of users: ", len(user_df.shape[0])
-        print "Number of items: ", len(item_df.shape[0])
+        print "Number of users: ", user_df.shape[0]
+        print "Number of items: ", item_df.shape[0]
         e = 0
         user_indicator_list = []
         item_indicator_list = []
@@ -175,10 +198,6 @@ class LibfmLoader(object):
 
 
     def write(self, train_output_fp, test_output_fp):
-        print "saving index..."
-        self.uindex.to_csv("datalibfm/user_dict.txt", header=False)
-        self.iindex.to_csv("datalibfm/item_dict.txt", header=False)
-
         print "writing to train,test data to file..."
         self.result.to_csv(train_output_fp, sep=" ", header=False, index=False)
         self.result_test.to_csv(test_output_fp, sep=" ", header=False, index=False)
@@ -191,7 +210,7 @@ if __name__ == '__main__':
 
     users, coupons_train, coupons_test, purchases = load()
 
-    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:100])
+    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:100], reset_index=False)
     libfm.convert()
     libfm.write(train_output_path, test_output_path)
 
