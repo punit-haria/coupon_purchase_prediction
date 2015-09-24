@@ -66,16 +66,24 @@ class LibfmLoader(object):
 
         self.result["other_items"] = self.result.apply(similar_items_indicator, axis=1)
 
+        self.result["target"] = 1.0
+
         print "adding negative target values..."
         neg_values = pd.DataFrame()
         neg_values["target"] = 0.0
 
-        user_list = self.users.USER_ID_hash.tolist()
-        item_list = self.coupons_train.COUPON_ID_hash.tolist()
+
+        # remove later:
+        user_list = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
+        item_list = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
+
+        # uncomment later:
+        #user_list = self.users.USER_ID_hash.tolist()
+        #item_list = self.coupons_train.COUPON_ID_hash.tolist()
 
         print "adding negative user,item indicators..."
-        print "Number of users: ", self.num_users
-        print "Number of items: ", self.num_train_items
+        print "Number of users: ", len(user_list)
+        print "Number of items: ", len(item_list)
         e = 0
         user_indicator_list = []
         item_indicator_list = []
@@ -90,7 +98,7 @@ class LibfmLoader(object):
                     ival = str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users) + ":1"
                     item_indicator_list.append(ival)
                     # get similar items
-                    sval = str(self.result[self.result.users == uval]["other_items"].unique()[0])
+                    sval = str(self.result[self.result.user == uval]["other_items"].unique()[0])
                     simil_indicator_list.append(sval)
 
             e += 1
@@ -101,7 +109,9 @@ class LibfmLoader(object):
         neg_values["item"] = pd.Series(item_indicator_list)
         neg_values["other_items"] = pd.Series(simil_indicator_list)
 
-        self.result.append(neg_values)
+        neg_values["target"] = 0.0
+
+        self.result = self.result.append(neg_values)
 
 
     def write(self, train_output_fp, test_output_fp):
@@ -116,7 +126,7 @@ if __name__ == '__main__':
 
     users, coupons_train, coupons_test, purchases = load()
 
-    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:10])
+    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:100])
     libfm.convert_train()
     libfm.write(train_output_path, test_output_path)
 
