@@ -34,6 +34,30 @@ class LibfmLoader(object):
         self.result = pd.DataFrame()
         self.result_test = pd.DataFrame()
 
+        print "constructing user,item index..."
+        user_index = {}
+        item_index = {}
+        user_list = self.users.USER_ID_hash.tolist()
+        item_list = self.coupons.COUPON_ID_hash.tolist()
+        e = 0
+        for user in user_list:
+            val = self.users[self.users.USER_ID_hash == user].index[0]
+            user_index[user] = val
+            e += 1
+            if e % 1000 == 0:
+                print "At user: ", e
+        e = 0
+        for item in item_list:
+            val = self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users
+            item_index[item] = val
+            e += 1
+            if e % 1000 == 0:
+                print "At item: ", e
+        self.uindex = pd.DataFrame.from_dict(user_index, orient='index')
+        self.uindex.columns = ["id", "val"]
+        self.iindex = pd.DataFrame.from_dict(item_index, orient='index')
+        self.iindex.columns = ["id", "val"]
+
 
     def convert(self):
         self._convert_train()
@@ -78,24 +102,24 @@ class LibfmLoader(object):
         neg_values = pd.DataFrame()
         neg_values["target"] = 0.0
 
-        user_list = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
-        item_list = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
+        user_df = self.uindex[self.uindex.id.isin(self.purchases.USER_ID_hash)]
+        item_df = self.iindex[self.iindex.id.isin(self.purchases.COUPON_ID_hash)]
 
         print "adding negative user,item indicators..."
-        print "Number of users: ", len(user_list)
-        print "Number of items: ", len(item_list)
+        print "Number of users: ", len(user_df.shape[0])
+        print "Number of items: ", len(item_df.shape[0])
         e = 0
         user_indicator_list = []
         item_indicator_list = []
         simil_indicator_list = []
-        for user in user_list:
-            uval = str(self.users[self.users.USER_ID_hash == user].index[0]) + ":1"
-            for item in item_list:
-                if self.purchases[(self.purchases.USER_ID_hash == user) & (self.purchases.COUPON_ID_hash == item)].empty:
+        for user_row in user_df:
+            uval = str(user_row.val) + ":1"
+            for item_row in item_df:
+                if self.purchases[(self.purchases.USER_ID_hash == user_row.id) & (self.purchases.COUPON_ID_hash == item_row.id)].empty:
                     # get user value
                     user_indicator_list.append(uval)
                     # get item value
-                    ival = str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users) + ":1"
+                    ival = str(int(item_row.val) + self.num_users) + ":1"
                     item_indicator_list.append(ival)
                     # get similar items
                     sval = str(self.result[self.result.user == uval]["other_items"].unique()[0])
@@ -115,24 +139,23 @@ class LibfmLoader(object):
 
 
     def _convert_test(self):
-        user_list = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
-        #user_list = self.users.USER_ID_hash.tolist()
-        item_list = self.coupons_test.COUPON_ID_hash.tolist()
+        user_df = self.uindex[self.uindex.id.isin(self.purchases.USER_ID_hash)]
+        item_df = self.iindex[self.iindex.id.isin(self.coupons_test.COUPON_ID_hash)]
 
         print "converting test set..."
-        print "Number of users: ", len(user_list)
-        print "Number of items: ", len(item_list)
+        print "Number of users: ", user_df.shape[0]
+        print "Number of items: ", item_df.shape[0]
         e = 0
         user_indicator_list = []
         item_indicator_list = []
         simil_indicator_list = []
-        for user in user_list:
-            uval = str(self.users[self.users.USER_ID_hash == user].index[0]) + ":1"
-            for item in item_list:
+        for user_row in user_df:
+            uval = str(user_row.val) + ":1"
+            for item_row in item_df:
                 # get user value
                 user_indicator_list.append(uval)
                 # get item value
-                ival = str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users) + ":1"
+                ival = str(int(item_row.val) + self.num_users) + ":1"
                 item_indicator_list.append(ival)
                 # get similar items
                 temp = self.result[self.result.user == uval]
@@ -153,28 +176,8 @@ class LibfmLoader(object):
 
     def write(self, train_output_fp, test_output_fp):
         print "saving index..."
-        user_index = {}
-        item_index = {}
-        user_list = self.users.USER_ID_hash.tolist()
-        item_list = self.coupons.COUPON_ID_hash.tolist()
-        e = 0
-        for user in user_list:
-            val = self.users[self.users.USER_ID_hash == user].index[0]
-            user_index[user] = val
-            e += 1
-            if e % 1000 == 0:
-                print "At user: ", e
-        e = 0
-        for item in item_list:
-            val = self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users
-            item_index[item] = val
-            e += 1
-            if e % 1000 == 0:
-                print "At item: ", e
-        udf = pd.DataFrame.from_dict(user_index, orient='index')
-        idf = pd.DataFrame.from_dict(item_index, orient='index')
-        udf.to_csv("datalibfm/user_dict.txt", header=False)
-        idf.to_csv("datalibfm/item_dict.txt", header=False)
+        self.uindex.to_csv("datalibfm/user_dict.txt", header=False)
+        self.iindex.to_csv("datalibfm/item_dict.txt", header=False)
 
         print "writing to train,test data to file..."
         self.result.to_csv(train_output_fp, sep=" ", header=False, index=False)
