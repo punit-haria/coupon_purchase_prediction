@@ -32,9 +32,15 @@ class LibfmLoader(object):
         self.num_items = self.num_train_items + self.num_test_items
 
         self.result = pd.DataFrame()
+        self.result_test = pd.DataFrame()
 
 
-    def convert_train(self):
+    def convert(self):
+        self._convert_train()
+        self._convert_test()
+
+
+    def _convert_train(self):
 
         print "adding target..."
 
@@ -72,14 +78,8 @@ class LibfmLoader(object):
         neg_values = pd.DataFrame()
         neg_values["target"] = 0.0
 
-
-        # remove later:
         user_list = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
         item_list = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
-
-        # uncomment later:
-        #user_list = self.users.USER_ID_hash.tolist()
-        #item_list = self.coupons_train.COUPON_ID_hash.tolist()
 
         print "adding negative user,item indicators..."
         print "Number of users: ", len(user_list)
@@ -102,7 +102,7 @@ class LibfmLoader(object):
                     simil_indicator_list.append(sval)
 
             e += 1
-            if e % 1000 == 0:
+            if e % 250 == 0:
                 print "At user: ", e
 
         neg_values["user"] = pd.Series(user_indicator_list)
@@ -114,9 +114,71 @@ class LibfmLoader(object):
         self.result = self.result.append(neg_values)
 
 
+    def _convert_test(self):
+        user_list = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
+        #user_list = self.users.USER_ID_hash.tolist()
+        item_list = self.coupons_test.COUPON_ID_hash.tolist()
+
+        print "converting test set..."
+        print "Number of users: ", len(user_list)
+        print "Number of items: ", len(item_list)
+        e = 0
+        user_indicator_list = []
+        item_indicator_list = []
+        simil_indicator_list = []
+        for user in user_list:
+            uval = str(self.users[self.users.USER_ID_hash == user].index[0]) + ":1"
+            for item in item_list:
+                # get user value
+                user_indicator_list.append(uval)
+                # get item value
+                ival = str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users) + ":1"
+                item_indicator_list.append(ival)
+                # get similar items
+                temp = self.result[self.result.user == uval]
+                if temp.shape[0] == 0:
+                    sval = ""
+                else:
+                    sval = str(temp["other_items"].unique()[0])
+                simil_indicator_list.append(sval)
+
+            e += 1
+            if e % 250 == 0:
+                print "At user: ", e
+
+        self.result_test["user"] = pd.Series(user_indicator_list)
+        self.result_test["item"] = pd.Series(item_indicator_list)
+        self.result_test["other_items"] = pd.Series(simil_indicator_list)
+
+
     def write(self, train_output_fp, test_output_fp):
-        print "writing to file..."
+        print "saving index..."
+        user_index = {}
+        item_index = {}
+        user_list = self.users.USER_ID_hash.tolist()
+        item_list = self.coupons.COUPON_ID_hash.tolist()
+        e = 0
+        for user in user_list:
+            val = self.users[self.users.USER_ID_hash == user].index[0]
+            user_index[user] = val
+            e += 1
+            if e % 1000 == 0:
+                print "At user: ", e
+        e = 0
+        for item in item_list:
+            val = self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users
+            item_index[item] = val
+            e += 1
+            if e % 1000 == 0:
+                print "At item: ", e
+        udf = pd.DataFrame.from_dict(user_index, orient='index')
+        idf = pd.DataFrame.from_dict(item_index, orient='index')
+        udf.to_csv("datalibfm/user_dict.txt", header=False)
+        idf.to_csv("datalibfm/item_dict.txt", header=False)
+
+        print "writing to train,test data to file..."
         self.result.to_csv(train_output_fp, sep=" ", header=False, index=False)
+        self.result_test.to_csv(test_output_fp, sep=" ", header=False, index=False)
 
 
 if __name__ == '__main__':
@@ -127,7 +189,7 @@ if __name__ == '__main__':
     users, coupons_train, coupons_test, purchases = load()
 
     libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:100])
-    libfm.convert_train()
+    libfm.convert()
     libfm.write(train_output_path, test_output_path)
 
 
