@@ -124,26 +124,41 @@ class LibfmLoader(object):
 
         self.result["target"] = 1.0
 
-        print "adding negative target values..."
+        print "negative user,item indicators..."
+
+        unpvis =  self.visits[self.visits.PURCHASE_FLG == 0]
+        unpvis = unpvis[["USER_ID_hash", "VIEW_COUPON_ID_hash"]].unique()
+        unpvis.columns = ["USER_ID_hash", "COUPON_ID_hash"]
+
+        print "adding ", unpvis.shape[0]," indicators..."
+
+        user_list = self.users[self.users.USER_ID_hash.isin(self.visits.USER_ID_hash)]["USER_ID_hash"]
+
         neg_values = pd.DataFrame()
         neg_values["target"] = 0.0
-
-        user_keyset = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
-        item_keyset = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
-
-        print "adding negative user,item indicators..."
-        print "Number of users: ", len(user_keyset)
-        print "Number of items: ", len(item_keyset)
+        neg_values["user"]  = unpvis.apply(user_indicator, axis=1)
+        neg_values["item"] = unpvis.apply(coupon_indicator, axis=1)
+        neg_values["other_items"] = neg_values.apply(similar_items_indicator, axis=1)
 
         print "reading probabilities of purchase (based on visits)..."
         prob_purchase = pd.read_csv("datalibfm/prob_purchase.txt")
-        
+
+        print "adding negative targets..."
 
 
-        e = 0
+
+
+
+        target_list = []
         user_indicator_list = []
         item_indicator_list = []
         simil_indicator_list = []
+
+        item_keyset = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
+
+
+        e = 0
+
         for user_id in user_keyset:
             uval = str(self.uindex[user_id]) + ":1"
             for item_id in item_keyset:
@@ -160,6 +175,7 @@ class LibfmLoader(object):
             e += 1
             if e % 250 == 0:
                 print "At user: ", e
+
 
         neg_values["user"] = pd.Series(user_indicator_list)
         neg_values["item"] = pd.Series(item_indicator_list)
