@@ -21,6 +21,11 @@ Questions:
 
 TODO:
 
+Idea:
+- rank user-purchases as 1.0
+- rank user visits but not purchased as 0.0
+
+
 0. Split users into two groups:
 	group 1: users with only 1 purchase so far
 	group 2: users with more than 1 purchase
