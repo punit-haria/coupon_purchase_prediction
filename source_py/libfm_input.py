@@ -22,12 +22,13 @@ class LibfmLoader(object):
         self.coupons_train = coupons_train
         self.coupons_test = coupons_test
         self.purchases = purchases
-        self.visits = visits
 
         self.coupons_train["type"] = "train"
         self.coupons_test["type"] = "test"
         self.coupons = self.coupons_train.append(self.coupons_test)
         self.coupons.reset_index(inplace=True)
+
+        self.visits = visits[visits.VIEW_COUPON_ID_hash.isin(self.coupons.COUPON_ID_hash)]
 
         self.num_users = self.users.shape[0]
         self.num_train_items = self.coupons_train.shape[0]
@@ -114,6 +115,8 @@ class LibfmLoader(object):
             uid_hash = self.users.ix[int(str(df.user).split(':')[0])]['USER_ID_hash']
             purchased_set = self.purchases[self.purchases.USER_ID_hash == uid_hash]["COUPON_ID_hash"].unique().tolist()
             fstr = ""
+            purchased_set_len = len(purchased_set)
+            if purchased_set_len == 0: return fstr
             value = str(1.0 / math.sqrt(len(purchased_set)))
             for item in purchased_set:
                 fstr += str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users + self.num_items)
@@ -127,12 +130,10 @@ class LibfmLoader(object):
         print "negative user,item indicators..."
 
         unpvis =  self.visits[self.visits.PURCHASE_FLG == 0]
-        unpvis = unpvis[["USER_ID_hash", "VIEW_COUPON_ID_hash"]].unique()
+        unpvis = unpvis[["USER_ID_hash", "VIEW_COUPON_ID_hash"]].drop_duplicates()
         unpvis.columns = ["USER_ID_hash", "COUPON_ID_hash"]
 
-        print "adding ", unpvis.shape[0]," indicators..."
-
-        user_list = self.users[self.users.USER_ID_hash.isin(self.visits.USER_ID_hash)]["USER_ID_hash"]
+        print "adding", unpvis.shape[0], "indicators..."
 
         neg_values = pd.DataFrame()
         neg_values["target"] = 0.0
@@ -143,45 +144,17 @@ class LibfmLoader(object):
         print "reading probabilities of purchase (based on visits)..."
         prob_purchase = pd.read_csv("datalibfm/prob_purchase.txt")
 
+        print "finding corresponding user indices..."
+
+        prob_purchase["user"] = prob_purchase.apply(user_indicator, axis=1)
+        prob_purchase = prob_purchase[["user", "PROB_PURCHASE"]]
+
         print "adding negative targets..."
 
-
-
-
-
-        target_list = []
-        user_indicator_list = []
-        item_indicator_list = []
-        simil_indicator_list = []
-
-        item_keyset = self.coupons_train[self.coupons_train.COUPON_ID_hash.isin(self.purchases.COUPON_ID_hash)]["COUPON_ID_hash"].tolist()
-
-
-        e = 0
-
-        for user_id in user_keyset:
-            uval = str(self.uindex[user_id]) + ":1"
-            for item_id in item_keyset:
-                if self.purchases[(self.purchases.USER_ID_hash == user_id) & (self.purchases.COUPON_ID_hash == item_id)].empty:
-                    # get user value
-                    user_indicator_list.append(uval)
-                    # get item value
-                    ival = str(int(self.iindex[item_id]) + self.num_users) + ":1"
-                    item_indicator_list.append(ival)
-                    # get similar items
-                    sval = str(self.result[self.result.user == uval]["other_items"].unique()[0])
-                    simil_indicator_list.append(sval)
-
-            e += 1
-            if e % 250 == 0:
-                print "At user: ", e
-
-
-        neg_values["user"] = pd.Series(user_indicator_list)
-        neg_values["item"] = pd.Series(item_indicator_list)
-        neg_values["other_items"] = pd.Series(simil_indicator_list)
-
-        neg_values["target"] = 0.0
+        neg_values = neg_values.merge(prob_purchase, how='left', on='user')
+        neg_values["target"] = neg_values["PROB_PURCHASE"]
+        neg_values = neg_values[["target","user","item","other_items"]]
+        neg_values["target"].fillna(0.0)
 
         self.result = self.result.append(neg_values)
 
@@ -232,13 +205,13 @@ class LibfmLoader(object):
 
 if __name__ == '__main__':
 
-    train_output_path = sys.argv[1]
-    test_output_path = sys.argv[2]
-
     users, coupons_train, coupons_test, purchases, visits = load()
 
-    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:200], visits, reset_index=False)
+    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases, visits, reset_index=False)
     libfm.convert()
+
+    train_output_path = sys.argv[1]
+    test_output_path = sys.argv[2]
     libfm.write(train_output_path, test_output_path)
 
 
