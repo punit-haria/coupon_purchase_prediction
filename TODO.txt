@@ -51,7 +51,10 @@ Idea:
 
 4. Calculate Coverage metric for model (Item space and User space coverage)
 
+------------------------------------------------------------------------------------------
 
+- find out if a user visits a coupon AFTER he/she has purchased it
+- find out if a user visits a coupon, what is his/her probability of purchasing it in the future
 
 
 

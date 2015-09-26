@@ -11,16 +11,18 @@ def load():
     coupons_train = pd.read_csv("raw_data/coupon_list_train.csv")
     coupons_test = pd.read_csv("raw_data/coupon_list_test.csv")
     details_train = pd.read_csv("raw_data/coupon_detail_train.csv")
+    visits = pd.read_csv("raw_data/coupon_visit_train.csv")
 
-    return user_list, coupons_train, coupons_test, details_train
+    return user_list, coupons_train, coupons_test, details_train, visits
 
 class LibfmLoader(object):
 
-    def __init__(self, users, coupons_train, coupons_test, purchases, reset_index=False):
+    def __init__(self, users, coupons_train, coupons_test, purchases, visits, reset_index=False):
         self.users = users
         self.coupons_train = coupons_train
         self.coupons_test = coupons_test
         self.purchases = purchases
+        self.visits = visits
 
         self.coupons_train["type"] = "train"
         self.coupons_test["type"] = "test"
@@ -132,6 +134,12 @@ class LibfmLoader(object):
         print "adding negative user,item indicators..."
         print "Number of users: ", len(user_keyset)
         print "Number of items: ", len(item_keyset)
+
+        print "reading probabilities of purchase (based on visits)..."
+        prob_purchase = pd.read_csv("datalibfm/prob_purchase.txt")
+        
+
+
         e = 0
         user_indicator_list = []
         item_indicator_list = []
@@ -193,9 +201,11 @@ class LibfmLoader(object):
             if e % 250 == 0:
                 print "At user: ", e
 
+        self.result_test["target"] = 0.0
         self.result_test["user"] = pd.Series(user_indicator_list)
         self.result_test["item"] = pd.Series(item_indicator_list)
         self.result_test["other_items"] = pd.Series(simil_indicator_list)
+        self.result_test["target"] = 0.0
 
 
     def write(self, train_output_fp, test_output_fp):
@@ -209,9 +219,9 @@ if __name__ == '__main__':
     train_output_path = sys.argv[1]
     test_output_path = sys.argv[2]
 
-    users, coupons_train, coupons_test, purchases = load()
+    users, coupons_train, coupons_test, purchases, visits = load()
 
-    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases, reset_index=False)
+    libfm = LibfmLoader(users, coupons_train, coupons_test, purchases.ix[0:200], visits, reset_index=False)
     libfm.convert()
     libfm.write(train_output_path, test_output_path)
 

@@ -25,6 +25,7 @@ assert_that(are_equal(ncol(coupons_test), 24))
 visits_train <- read.delim("raw_data/coupon_visit_train.csv", 
                            encoding="UTF-8", 
                            header=TRUE, sep=",", quote="")
+visits_train$I_DATE <- as.Date(visits_train$I_DATE, format="%Y-%m-%d ")
 
 assert_that(are_equal(nrow(visits_train), 2833180))
 assert_that(are_equal(ncol(visits_train), 8))
@@ -32,6 +33,7 @@ assert_that(are_equal(ncol(visits_train), 8))
 details_train <- read.delim("raw_data/coupon_detail_train.csv", 
                            encoding="UTF-8", 
                            header=TRUE, sep=",", quote="")
+details_train$I_DATE <- as.Date(details_train$I_DATE, format="%Y-%m-%d ")
 
 assert_that(are_equal(nrow(details_train), 168996))
 assert_that(are_equal(ncol(details_train), 6))
