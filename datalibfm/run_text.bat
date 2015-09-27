@@ -1,0 +1,1 @@
+libfm-1.40.windows\libfm.exe -task r -train datalibfm/train_output.txt -test datalibfm/test_output.txt -dim '1,1,10' -out datalibfm/libfm_output.txt -method als -regular 0.1 
