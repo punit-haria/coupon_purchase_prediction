@@ -4,3 +4,5 @@ data/*
 .idea
 submissions/*
 .RProj.user
+datalibfm/*.txt
+
