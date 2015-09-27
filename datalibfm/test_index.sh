@@ -1,0 +1,1 @@
+cat datalibfm/test_output.txt | cut -d ' ' -f2,3 > datalibfm/test_index.txt

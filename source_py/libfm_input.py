@@ -27,6 +27,7 @@ class LibfmLoader(object):
         self.coupons_train["type"] = "train"
         self.coupons_test["type"] = "test"
         self.coupons = self.coupons_train.append(self.coupons_test)
+        self.coupons.reset_index(inplace=True, drop=True)
         self.coupons.reset_index(inplace=True)
 
         self.visits = visits[visits.VIEW_COUPON_ID_hash.isin(self.coupons.COUPON_ID_hash)]
@@ -72,8 +73,7 @@ class LibfmLoader(object):
 
         print "defining item-index and similar item to index mapping..."
 
-        item_df = self.coupons.reset_index(level=0, inplace=False)
-        item_df.rename(columns={'index':'item_index'}, inplace=True)
+        item_df = self.coupons.rename(columns={'index':'item_index'}, inplace=False)
         item_df = item_df[["item_index", "COUPON_ID_hash"]]
         item_df["item_index"] = item_df.item_index + self.num_users
         item_df["simil_item_index"] = item_df["item_index"] + self.num_items
