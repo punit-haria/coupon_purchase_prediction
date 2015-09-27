@@ -1,9 +1,10 @@
 __author__ = 'Punit'
 
 import pandas as pd
+import sys
 
 
-def format():
+def format_kaggle(output_fname):
 
     print "reading predictions..."
 
@@ -32,19 +33,36 @@ def format():
 
     print "getting top 10 probabilities..."
 
-    grouped = test.groupby("USER_ID_hash")
-    largest = grouped['preds'].nlargest(10)
+    val = test.groupby("USER_ID_hash")["preds"].nlargest(10)
 
+    test.reset_index(inplace=True)
+    test.rename(columns={'index':'new_index'}, inplace=True)
 
+    val = val.reset_index(level=1, inplace=False)
+    val.columns = ["new_index", "preds"]
 
+    test = val.merge(test, how='left', on='new_index')
+    test.drop(['new_index','preds_y'], axis=1, inplace=True)
+    test.rename(columns={'preds_x':'preds'}, inplace=True)
 
+    print "formatting data for kaggle..."
 
+    def kfmt(x):
+        x = x.sort(ascending=False)
+        return " ".join(x.COUPON_ID_hash)
 
+    test = test.groupby("USER_ID_hash").aggregate(kfmt)
+    test.drop('preds', axis=1, inplace=True)
+    test.reset_index(inplace=True)
 
+    assert test.USER_ID_hash.unique().shape[0] == user_list.shape[0]
+    assert test.shape[0] == user_list.shape[0]
 
+    print "writing..."
 
-
+    test.to_csv(output_fname, sep=",", index=False, header=True)
 
 if __name__ == '__main__':
 
     print "formatting for kaggle..."
+    format_kaggle(sys.argv[1])
