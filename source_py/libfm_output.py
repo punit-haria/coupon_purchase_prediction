@@ -25,6 +25,8 @@ def format_kaggle(output_fname):
 
     print "merging with user and item dictionaries..."
 
+    test["preds"] = np.random.randn(test.shape[0])
+
     test["preds"] = preds.preds
     test = test.merge(user_df, how='left', on='user_index')
     test.drop('user_index', axis=1, inplace=True)
@@ -48,7 +50,6 @@ def format_kaggle(output_fname):
     print "formatting data for kaggle..."
 
     def kfmt(x):
-        x = x.sort(ascending=False)
         return " ".join(x.COUPON_ID_hash)
 
     test = test.groupby("USER_ID_hash").aggregate(kfmt)
