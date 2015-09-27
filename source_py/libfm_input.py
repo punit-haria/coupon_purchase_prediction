@@ -35,8 +35,12 @@ class LibfmLoader(object):
         self.num_test_items = self.coupons_test.shape[0]
         self.num_items = self.num_train_items + self.num_test_items
 
-        self.result = pd.DataFrame()
-        self.result_test = pd.DataFrame()
+        self.user_df = None
+        self.item_df = None
+        self.rated = None
+
+        self.result = None
+        self.result_test = None
 
         print "getting user,item index..."
         self.uindex_fname = "datalibfm/user_dict.txt"
@@ -93,108 +97,122 @@ class LibfmLoader(object):
 
     def _convert_train(self):
 
-        print "adding target..."
+        print "adding positive examples..."
 
-        self.result["target"] = 1.0
+        # libfm notation conversion function
+        def libfm_notation(val):
+            return str(val)+":1"
 
-        print "converting user, item indicators..."
+        print "defining user-index mapping..."
 
-        def user_indicator(df):
-            return str(self.users[self.users.USER_ID_hash == df.USER_ID_hash].index[0])+":1"
+        user_df = self.users.reset_index(level=0, inplace=False)
+        user_df.rename(columns={'index':'user_index'}, inplace=True)
+        user_df = user_df[["user_index", "USER_ID_hash"]]
+        user_df["user_index"] = user_df.user_index.apply(libfm_notation)
 
-        def coupon_indicator(df):
-            real_index = self.coupons[self.coupons.COUPON_ID_hash == df.COUPON_ID_hash].index[0] + self.num_users
-            return str(real_index)+":1"
+        print "adding user indicators..."
 
-        self.result["user"]  = self.purchases.apply(user_indicator, axis=1)
-        self.result["item"] = self.purchases.apply(coupon_indicator, axis=1)
+        plhold = self.purchases[["USER_ID_hash", "COUPON_ID_hash"]].copy(deep=True)
+        plhold = plhold.merge(user_df, how='left', on='USER_ID_hash')
 
-        print "converting purchased item indicators..."
+        print "defining item-index and similar item to index mapping..."
 
-        def similar_items_indicator(df):
-            uid_hash = self.users.ix[int(str(df.user).split(':')[0])]['USER_ID_hash']
-            purchased_set = self.purchases[self.purchases.USER_ID_hash == uid_hash]["COUPON_ID_hash"].unique().tolist()
-            fstr = ""
-            purchased_set_len = len(purchased_set)
-            if purchased_set_len == 0: return fstr
-            value = str(1.0 / math.sqrt(len(purchased_set)))
-            for item in purchased_set:
-                fstr += str(self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users + self.num_items)
-                fstr += ":" + value + " "
-            return fstr
+        item_df = self.coupons.reset_index(level=0, inplace=False)
+        item_df.rename(columns={'index':'item_index'}, inplace=True)
+        item_df = item_df[["item_index", "COUPON_ID_hash"]]
+        item_df["item_index"] = item_df.item_index + self.num_users
+        item_df["simil_item_index"] = item_df["item_index"] + self.num_items
+        item_df["item_index"] = item_df.item_index.apply(libfm_notation)
+        item_df["simil_item_index"] = item_df.simil_item_index.apply(libfm_notation)
 
-        self.result["other_items"] = self.result.apply(similar_items_indicator, axis=1)
+        print "adding item indicators..."
 
-        self.result["target"] = 1.0
+        plhold = plhold.merge(item_df, how='left', on='COUPON_ID_hash')
+        plhold = plhold[["USER_ID_hash", "COUPON_ID_hash", "user_index", "item_index"]]
 
-        print "negative user,item indicators..."
+        print "defining similar item indicators..."
+
+        rated = self.visits.rename(columns={'VIEW_COUPON_ID_hash':'COUPON_ID_hash'}, inplace=False)
+        rated = rated[["USER_ID_hash", "COUPON_ID_hash"]]
+        rated = rated.append(self.purchases[["USER_ID_hash", "COUPON_ID_hash"]])
+        rated.drop_duplicates(inplace=True)
+        rated = rated.merge(item_df, how='left', on='COUPON_ID_hash')
+        rated = rated[["USER_ID_hash", "simil_item_index"]]
+        rated["simil_item_index"] += " "
+        rated = rated.groupby("USER_ID_hash").aggregate(lambda x: " ".join(x.simil_item_index))
+        rated.reset_index(level=0, inplace=True)
+
+        print "adding similar item indicators..."
+
+        plhold = plhold.merge(rated, how='left', on='USER_ID_hash')
+
+        print "finalizing positive examples..."
+
+        plhold["target"] = 1.0
+        plhold = plhold[["USER_ID_hash", "COUPON_ID_hash", "target", "user_index", "item_index", "simil_item_index"]]
+
+        print "adding negative examples..."
 
         unpvis =  self.visits[self.visits.PURCHASE_FLG == 0]
         unpvis = unpvis[["USER_ID_hash", "VIEW_COUPON_ID_hash"]].drop_duplicates()
-        unpvis.columns = ["USER_ID_hash", "COUPON_ID_hash"]
+        unpvis.rename(columns={'VIEW_COUPON_ID_hash':'COUPON_ID_hash'}, inplace=True)
 
-        print "adding", unpvis.shape[0], "indicators..."
+        print "adding user indicators..."
 
-        neg_values = pd.DataFrame()
-        neg_values["target"] = 0.0
-        neg_values["user"]  = unpvis.apply(user_indicator, axis=1)
-        neg_values["item"] = unpvis.apply(coupon_indicator, axis=1)
-        neg_values["other_items"] = neg_values.apply(similar_items_indicator, axis=1)
+        unpvis = unpvis.merge(user_df, how='left', on='USER_ID_hash')
+
+        print "adding item indicators..."
+
+        unpvis = unpvis.merge(item_df, how='left', on='COUPON_ID_hash')
+        unpvis = unpvis[["USER_ID_hash", "COUPON_ID_hash", "user_index", "item_index"]]
+
+        print "adding similar item indicators..."
+
+        unpvis = unpvis.merge(rated, how='left', on='USER_ID_hash')
 
         print "reading probabilities of purchase (based on visits)..."
+
         prob_purchase = pd.read_csv("datalibfm/prob_purchase.txt")
+        prob_purchase = prob_purchase[["USER_ID_hash", "PROB_PURCHASE"]]
 
-        print "finding corresponding user indices..."
+        print "finalizing negative examples..."
 
-        prob_purchase["user"] = prob_purchase.apply(user_indicator, axis=1)
-        prob_purchase = prob_purchase[["user", "PROB_PURCHASE"]]
+        unpvis = unpvis.merge(prob_purchase, how='left', on='USER_ID_hash')
+        unpvis.rename(columns={'PROB_PURCHASE':'target'}, inplace=True)
+        unpvis = unpvis[["USER_ID_hash", "COUPON_ID_hash", "target", "user_index", "item_index", "simil_item_index"]]
 
-        print "adding negative targets..."
+        print "finalizing training set..."
 
-        neg_values = neg_values.merge(prob_purchase, how='left', on='user')
-        neg_values["target"] = neg_values["PROB_PURCHASE"]
-        neg_values = neg_values[["target","user","item","other_items"]]
-        neg_values["target"].fillna(0.0)
-
-        self.result = self.result.append(neg_values)
+        self.user_df = user_df
+        self.item_df = item_df
+        self.rated = rated
+        self.result = plhold.append(unpvis)
 
 
     def _convert_test(self):
-        user_keyset = self.users[self.users.USER_ID_hash.isin(self.purchases.USER_ID_hash)]["USER_ID_hash"].tolist()
-        item_keyset = self.coupons_test.COUPON_ID_hash.tolist()
 
-        print "converting test set..."
-        print "Number of users: ", len(user_keyset)
-        print "Number of items: ", len(item_keyset)
-        e = 0
-        user_indicator_list = []
-        item_indicator_list = []
-        simil_indicator_list = []
-        for user_id in user_keyset:
-            uval = str(self.uindex[user_id]) + ":1"
-            for item_id in item_keyset:
-                # get user value
-                user_indicator_list.append(uval)
-                # get item value
-                ival = str(int(self.iindex[item_id]) + self.num_users) + ":1"
-                item_indicator_list.append(ival)
-                # get similar items
-                temp = self.result[self.result.user == uval]
-                if temp.shape[0] == 0:
-                    sval = ""
-                else:
-                    sval = str(temp["other_items"].unique()[0])
-                simil_indicator_list.append(sval)
+        print "generating test examples with user and item indicators..."
 
-            e += 1
-            if e % 250 == 0:
-                print "At user: ", e
+        test_userdf = self.user_df.copy(deep=True)
+        test_userdf["temp"] = 1
+        test_itemdf = self.item_df[["COUPON_ID_hash", "item_index"]]
+        test_itemdf = test_itemdf[test_itemdf.COUPON_ID_hash.isin(self.coupons_test.COUPON_ID_hash)].copy(deep=True)
+        test_itemdf["temp"] = 1
+        testrset = pd.merge(test_userdf, test_itemdf, on='temp')[["USER_ID_hash","user_index","COUPON_ID_hash","item_index"]]
 
-        self.result_test["target"] = 0.0
-        self.result_test["user"] = pd.Series(user_indicator_list)
-        self.result_test["item"] = pd.Series(item_indicator_list)
-        self.result_test["other_items"] = pd.Series(simil_indicator_list)
-        self.result_test["target"] = 0.0
+        print "adding similar item indicators..."
+
+        testrset = testrset.merge(self.rated, how='left', on='USER_ID_hash')
+
+        print "adding garbage target value (required by libFM)..."
+
+        testrset["target"] = -1.0
+
+        print "finalizing test examples..."
+
+        testrset = testrset[["USER_ID_hash", "COUPON_ID_hash", "target", "user_index", "item_index", "simil_item_index"]]
+        testrset.simil_item_index.fillna("", inplace=True)
+        self.result_test = testrset
 
 
     def write(self, train_output_fp, test_output_fp):
@@ -205,9 +223,12 @@ class LibfmLoader(object):
 
 if __name__ == '__main__':
 
+    print "loading data..."
     users, coupons_train, coupons_test, purchases, visits = load()
 
+    print "initializing..."
     libfm = LibfmLoader(users, coupons_train, coupons_test, purchases, visits, reset_index=False)
+    print "converting data..."
     libfm.convert()
 
     train_output_path = sys.argv[1]
