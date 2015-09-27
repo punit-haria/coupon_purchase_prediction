@@ -67,6 +67,7 @@ class LibfmLoader(object):
         print "adding user indicators..."
 
         plhold = self.purchases[["USER_ID_hash", "COUPON_ID_hash"]].copy(deep=True)
+        plhold.drop_duplicates(inplace=True)
         plhold = plhold.merge(user_df, how='left', on='USER_ID_hash')
 
         print "defining item-index and similar item to index mapping..."
@@ -77,7 +78,6 @@ class LibfmLoader(object):
         item_df["item_index"] = item_df.item_index + self.num_users
         item_df["simil_item_index"] = item_df["item_index"] + self.num_items
         item_df["item_index"] = item_df.item_index.apply(libfm_notation)
-        item_df["simil_item_index"] = item_df.simil_item_index.apply(libfm_notation)
 
         print "adding item indicators..."
 
@@ -87,13 +87,13 @@ class LibfmLoader(object):
         print "defining similar item indicators..."
 
         rated = self.visits.rename(columns={'VIEW_COUPON_ID_hash':'COUPON_ID_hash'}, inplace=False)
-        rated = rated[["USER_ID_hash", "COUPON_ID_hash"]]
+        rated = rated[rated.COUPON_ID_hash.isin(self.coupons_train.COUPON_ID_hash)][["USER_ID_hash", "COUPON_ID_hash"]]
         rated = rated.append(self.purchases[["USER_ID_hash", "COUPON_ID_hash"]])
         rated.drop_duplicates(inplace=True)
         rated = rated.merge(item_df, how='left', on='COUPON_ID_hash')
         rated = rated[["USER_ID_hash", "simil_item_index"]]
-        rated["simil_item_index"] += " "
-        rated = rated.groupby("USER_ID_hash").aggregate(lambda x: " ".join(x.simil_item_index))
+        rated = rated.groupby("USER_ID_hash").aggregate(
+            lambda x: " ".join([str(s) + ":" + str(1.0 / math.sqrt(len(x.simil_item_index))) for s in x.simil_item_index]))
         rated.reset_index(level=0, inplace=True)
 
         print "adding similar item indicators..."
@@ -133,6 +133,9 @@ class LibfmLoader(object):
 
         unpvis = unpvis.merge(prob_purchase, how='left', on='USER_ID_hash')
         unpvis.rename(columns={'PROB_PURCHASE':'target'}, inplace=True)
+        # users who have visited test coupons score higher on those ratings
+        unpvis.loc[unpvis.COUPON_ID_hash.isin(self.coupons_test.COUPON_ID_hash), "target"] = \
+            unpvis[unpvis.COUPON_ID_hash.isin(self.coupons_test.COUPON_ID_hash)]["target"] ** (1/3.)
         unpvis = unpvis[["USER_ID_hash", "COUPON_ID_hash", "target", "user_index", "item_index", "simil_item_index"]]
 
         print "finalizing training set..."

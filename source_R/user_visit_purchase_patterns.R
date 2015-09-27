@@ -28,6 +28,7 @@ visits_after = intsct %>% filter(VISIT_DATE > I_DATE)
 
 visits = visits_train %>% 
   select(USER_ID_hash, VIEW_COUPON_ID_hash) %>%
+  filter(VIEW_COUPON_ID_hash %in% coupons_train$COUPON_ID_hash) %>%
   unique()
 names(visits) = c('USER_ID_hash', 'COUPON_ID_hash')
 visits = mutate(visits, UC_CONCATE=paste(USER_ID_hash, COUPON_ID_hash))
