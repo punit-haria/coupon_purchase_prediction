@@ -15,6 +15,7 @@ def load():
 
     return user_list, coupons_train, coupons_test, details_train, visits
 
+
 class LibfmLoader(object):
 
     def __init__(self, users, coupons_train, coupons_test, purchases, visits, reset_index=False):
@@ -41,53 +42,6 @@ class LibfmLoader(object):
 
         self.result = None
         self.result_test = None
-
-        print "getting user,item index..."
-        self.uindex_fname = "datalibfm/user_dict.txt"
-        self.iindex_fname = "datalibfm/item_dict.txt"
-        if reset_index:
-            self.uindex, self.iindex = self._generate_index()
-        elif os.path.isfile(self.uindex_fname) and os.path.isfile(self.uindex_fname):
-            uindex = pd.read_csv(self.uindex_fname, header=None)
-            iindex = pd.read_csv(self.iindex_fname, header=None)
-            uindex.columns = ["id", "val"]
-            iindex.columns = ["id", "val"]
-            self.uindex = uindex.set_index('id')['val'].to_dict()
-            self.iindex = iindex.set_index('id')['val'].to_dict()
-        else:
-            self.uindex, self.iindex = self._generate_index()
-
-
-    def _generate_index(self):
-        print "generating user,item index..."
-        user_index = {}
-        item_index = {}
-        user_list = self.users.USER_ID_hash.tolist()
-        item_list = self.coupons.COUPON_ID_hash.tolist()
-        e = 0
-        for user in user_list:
-            val = self.users[self.users.USER_ID_hash == user].index[0]
-            user_index[user] = val
-            e += 1
-            if e % 1000 == 0:
-                print "At user: ", e
-        e = 0
-        for item in item_list:
-            val = self.coupons[self.coupons.COUPON_ID_hash == item].index[0] + self.num_users
-            item_index[item] = val
-            e += 1
-            if e % 1000 == 0:
-                print "At item: ", e
-
-        print "saving index..."
-        uindex = pd.DataFrame.from_dict(user_index, orient='index')
-        uindex.reset_index(level=0, inplace=True)
-        iindex = pd.DataFrame.from_dict(item_index, orient='index')
-        iindex.reset_index(level=0, inplace=True)
-        uindex.to_csv(self.uindex_fname, header=False, index=False)
-        iindex.to_csv(self.iindex_fname, header=False, index=False)
-
-        return user_index, item_index
 
 
     def convert(self):
@@ -216,9 +170,14 @@ class LibfmLoader(object):
 
 
     def write(self, train_output_fp, test_output_fp):
-        print "writing to train,test data to file..."
-        self.result.to_csv(train_output_fp, sep=" ", header=False, index=False)
-        self.result_test.to_csv(test_output_fp, sep=" ", header=False, index=False)
+        print "writing user and item index to file..."
+        self.user_df.to_csv("datalibfm/user_dict.txt", index=False, header=True)
+        self.item_df[["COUPON_ID_hash", "item_index"]].to_csv("datalibfm/item_dict.txt", index=False, header=True)
+
+        print "writing to train and test sets to file..."
+        rel_cols = ["target", "user_index", "item_index", "simil_item_index"]
+        self.result[rel_cols].to_csv(train_output_fp, sep=" ", header=False, index=False)
+        self.result_test[rel_cols].to_csv(test_output_fp, sep=" ", header=False, index=False)
 
 
 if __name__ == '__main__':
