@@ -5,3 +5,6 @@ data/*
 submissions/*
 .RProj.user
 datalibfm/*.txt
+datalibfm/*.x
+datalibfm/*.xt
+datalibfm/*.y
