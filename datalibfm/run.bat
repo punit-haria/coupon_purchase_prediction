@@ -1,1 +1,1 @@
-libfm-1.40.windows\libfm.exe -task r -train datalibfm/train_bin -test datalibfm/test_bin -dim '1,1,10' -out datalibfm/libfm_output.txt -method als -regular 0.1
+libfm-1.40.windows\libfm.exe -task r -train datalibfm/train_bin -test datalibfm/test_bin -dim '1,1,10' -out datalibfm/libfm_output.txt -method als -regular 0.1 -cache_size 800000000
