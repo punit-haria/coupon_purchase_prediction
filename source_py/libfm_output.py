@@ -55,13 +55,14 @@ def format_kaggle(output_fname):
     test = test.groupby("USER_ID_hash").aggregate(kfmt)
     test.drop('preds', axis=1, inplace=True)
     test.reset_index(inplace=True)
+    test.rename(columns={'COUPON_ID_hash':'PURCHASED_COUPONS'}, inplace=True)
 
     assert test.USER_ID_hash.unique().shape[0] == user_list.shape[0]
     assert test.shape[0] == user_list.shape[0]
 
     print "writing..."
 
-    test.to_csv(output_fname, sep=",", index=False, header=True)
+    test[['USER_ID_hash','PURCHASED_COUPONS']].to_csv(output_fname, sep=",", index=False, header=True)
 
 if __name__ == '__main__':
 
