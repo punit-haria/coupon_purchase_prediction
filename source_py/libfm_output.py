@@ -25,8 +25,6 @@ def format_kaggle(output_fname):
 
     print "merging with user and item dictionaries..."
 
-    test["preds"] = np.random.randn(test.shape[0])
-
     test["preds"] = preds.preds
     test = test.merge(user_df, how='left', on='user_index')
     test.drop('user_index', axis=1, inplace=True)
@@ -68,3 +66,18 @@ if __name__ == '__main__':
 
     print "formatting for kaggle..."
     format_kaggle(sys.argv[1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
