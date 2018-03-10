@@ -1,4 +1,4 @@
-from source_py.models.item_matrix import ItemMatrix
+from .models.item_matrix import ItemMatrix
 
 import pandas as pd
 import numpy as np

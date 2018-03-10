@@ -1,5 +1,3 @@
-__author__ = 'punit'
-
 import time
 
 class Timer(object):

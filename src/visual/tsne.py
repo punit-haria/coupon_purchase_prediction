@@ -1,5 +1,3 @@
-__author__ = 'Punit'
-
 from collections import OrderedDict
 from time import time
 
@@ -18,7 +16,10 @@ from sklearn.manifold import TSNE
 import warnings
 warnings.filterwarnings('ignore')
 
-from source_py.data import DataLoader
+from .data import DataLoader
+
+# TSNE visualization 
+
 
 sns.set(style="darkgrid", palette="muted")
 pd.set_option('display.mpl_style', 'default')

@@ -1,7 +1,7 @@
-__author__ = 'Punit'
-
 import pandas as pd
 import sys
+
+# Lib-FM Output
 
 
 def format_kaggle(output_fname):

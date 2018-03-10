@@ -1,13 +1,14 @@
-from source_py.data import DataLoader
-from source_py.model import Model
-from source_py.cv import Validator
+from .data import DataLoader
+from .model import Model
+from .cv import Validator
 
-from source_py.models.item_models import PurchaseModel
-from source_py.models.item_matrix import ItemMatrix
+from .models.item_models import PurchaseModel
+from .models.item_matrix import ItemMatrix
 
 import numpy as np
 from random import randint
 import multiprocessing as mp
+
 
 
 def run(output_filename):

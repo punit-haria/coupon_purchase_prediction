@@ -1,8 +1,12 @@
-from source_py.data import DataLoader
-from source_py.model import Model
+from .data import DataLoader
+from .model import Model
 
 import pandas as pd
 import numpy as np
+
+
+# Cross Validation 
+
 
 class Validator(object):
 

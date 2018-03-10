@@ -1,7 +1,9 @@
-from source_py.timer import Timer
+from .timer import Timer
 
 import pandas as pd
 import numpy as np
+
+
 
 class Model(object):
 

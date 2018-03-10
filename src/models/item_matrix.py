@@ -2,7 +2,7 @@ from numpy.linalg import norm
 
 import pandas as pd
 
-from source_py.data import DataLoader
+from .data import DataLoader
 
 def test():
     load = DataLoader()
