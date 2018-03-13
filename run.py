@@ -132,11 +132,11 @@ if __name__ == '__main__':
 
     print "hello"
 
-    #model, results = run('temp/results.csv')
+    model, results = run('temp/results.csv')
 
-    #parallel_validate('selection/model_config_13.txt')
+    parallel_validate('selection/model_config_13.txt')
 
-    #seq_validate('model_18')
+    seq_validate('model_18')
 
 
 
